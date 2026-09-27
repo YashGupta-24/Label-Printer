@@ -6,7 +6,7 @@ export default function Template4({ product }) {
   const safeProduct = product || { productName: "SAMPLE PRODUCT" };
 
   return (
-    <div className="w-[73mm] h-[46mm] overflow-hidden bg-white text-black flex flex-col box-border p-[1.5mm] break-inside-avoid">
+    <div className="w-[73mm] h-[46mm] overflow-hidden bg-white text-black flex flex-col box-border p-[1.5mm] break-inside-avoid [word-spacing:0.15em]">
       {/* Strip 1 */}
       <div className="flex-1 flex items-center justify-center border-b-2 border-black border-dashed pb-[1mm]">
          <AutoFitText text={safeProduct.productName} maxFontSize={30} minFontSize={12} singleLine={true} className="flex items-center justify-center font-black uppercase tracking-widest" />

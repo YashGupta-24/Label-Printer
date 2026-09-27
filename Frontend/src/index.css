@@ -1,6 +1,6 @@
 /* src/index.css */
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&family=Noto+Sans:wght@700;900&display=swap');
+@import "tailwindcss";
 
 body {
   font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
@@ -52,6 +52,7 @@ body {
     page-break-inside: avoid;
     break-inside: avoid;
     display: block !important; 
+    word-spacing: 0.1em;
   }
 
   .label-page:last-child {

@@ -12,6 +12,7 @@ export default function AddItem() {
     netWeight: '',
     mrp: '',
     ingredients: '',
+    hasNutrition: false,
     energy: '',
     protein: '',
     fat: '',
@@ -22,7 +23,8 @@ export default function AddItem() {
   const [errorMsg, setErrorMsg] = useState(''); // State to hold error messages
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const handleSubmit = async (e) => {
@@ -55,13 +57,16 @@ export default function AddItem() {
         netWeight: formData.netWeight,
         mrp: formData.mrp,
         ingredients: formData.ingredients,
-        nutritionalFacts: {
-          energy: formData.energy,
-          protein: formData.protein,
-          fat: formData.fat,
-          carbs: formData.carbs,
-          sugar: formData.sugar
-        }
+        hasNutrition: formData.hasNutrition || false,
+        ...(formData.hasNutrition ? {
+          nutritionalFacts: {
+            energy: formData.energy,
+            protein: formData.protein,
+            fat: formData.fat,
+            carbs: formData.carbs,
+            sugar: formData.sugar
+          }
+        } : {})
       });
       alert('Product saved successfully!');
       navigate('/');

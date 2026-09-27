@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import AddItem from './pages/AddItem';
 import EditItem from './pages/EditItem';
+import DeleteItem from './pages/DeleteItem';
 
 function App() {
   return (
@@ -17,6 +18,8 @@ function App() {
           <div className="space-x-6 font-bold text-sm">
             <Link to="/" className="hover:text-stone-500 transition">Print Dashboard</Link>
             <Link to="/add-item" className="hover:text-stone-500 transition">+ Add Item</Link>
+            <Link to="/edit-item" className="hover:text-stone-500 transition">Edit Item</Link>
+            <Link to="/delete-item" className="hover:text-stone-500 transition">Delete Item</Link>
           </div>
         </nav>
 
@@ -24,7 +27,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/add-item" element={<AddItem />} />
+          <Route path="/edit-item" element={<EditItem />} />
           <Route path="/edit-item/:id" element={<EditItem />} />
+          <Route path="/delete-item" element={<DeleteItem />} />
         </Routes>
       </div>
     </Router>
