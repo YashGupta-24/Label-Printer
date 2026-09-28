@@ -1,0 +1,122 @@
+// src/components/Template3.jsx
+import React from 'react';
+import AutoFitText from './AutoFitText';
+import fssaiLogo from '../assets/fssai_logo_crisp.png';
+
+export default function Template3({ product, batchNo, packedOn }) {
+  const safeProduct = {
+    productName: product?.productName || "ROASTED CHANA",
+    netWeight: product?.netWeight || "300 gram",
+    mrp: product?.mrp || "85.00",
+    ingredients: product?.ingredients || "ROASTED CHANA"
+  };
+
+  // Format net weight to avoid duplicating "gram" if user already typed it
+  const formattedWeight = safeProduct.netWeight.toLowerCase().includes('g') 
+    ? safeProduct.netWeight 
+    : `${safeProduct.netWeight} g`;
+
+  return (
+    <div className="w-[75mm] h-[50mm] overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid [word-spacing:0.1em]">
+      
+      {/* 1. TOP TAGLINE WITH STARS */}
+      <div className="shrink-0 h-[3.8mm] w-full flex items-center justify-center text-black font-black text-[9.5px] leading-none tracking-normal">
+        <span className="text-[10px] mr-2">★</span>
+        <span className="font-bold">सेहत स्वाद साथ-साथ</span>
+        <span className="text-[10px] ml-2">★</span>
+      </div>
+
+      {/* 2. BLACK RIBBON BANNER - INDIAN FOOD */}
+      <div className="shrink-0 h-[5.6mm] w-full bg-black text-white flex items-center justify-center font-black text-[13px] tracking-[0.22em] uppercase leading-none mt-[0.5mm]">
+        INDIAN FOOD
+      </div>
+
+      {/* 3. MAIN BORDERED BOX */}
+      <div className="shrink-0 flex flex-col w-full border-[2px] border-black mt-[0.8mm]">
+        
+        {/* Product Name Header */}
+        <div className="h-[7.2mm] w-full flex items-center justify-center font-black uppercase tracking-wide text-center p-0 m-0 border-b-[1.8px] border-black">
+          <AutoFitText 
+            text={safeProduct.productName} 
+            maxFontSize={36} 
+            minFontSize={14} 
+            allowWrap={false} 
+            className="flex items-center justify-center font-black"
+          />
+        </div>
+
+        {/* 2x2 Details Grid */}
+        <div className="flex flex-col w-full h-[12.2mm] text-[8.5px] leading-tight font-bold">
+          
+          {/* Row 1: Batch No. & Packed On */}
+          <div className="flex border-b-[1.5px] border-black flex-1 items-center">
+            <div className="w-[24%] h-full flex items-center border-r-[1.5px] border-black px-[3px]">
+              Batch No.
+            </div>
+            <div className="w-[26%] h-full flex items-center border-r-[2px] border-black px-[3px] font-black text-[9.5px]">
+              {batchNo}
+            </div>
+            <div className="w-[24%] h-full flex items-center border-r-[1.5px] border-black px-[3px]">
+              Packed On
+            </div>
+            <div className="w-[26%] h-full flex items-center px-[3px] font-black text-[9.5px]">
+              {packedOn}
+            </div>
+          </div>
+
+          {/* Row 2: Net Wt. & M.R.P */}
+          <div className="flex flex-1 items-center">
+            <div className="w-[24%] h-full flex items-center border-r-[1.5px] border-black px-[3px]">
+              Net Wt.
+            </div>
+            <div className="w-[26%] h-full flex items-center border-r-[2px] border-black px-[3px] font-black text-[9.5px]">
+              {formattedWeight}
+            </div>
+            <div className="w-[24%] h-full flex flex-col justify-center border-r-[1.5px] border-black px-[3px] leading-[1.05]">
+              <span className="text-[7.5px] font-bold">M.R.P</span>
+              <span className="text-[6.5px] font-normal leading-none">(Incl. All Taxes)</span>
+            </div>
+            <div className="w-[26%] h-full flex items-center px-[3px] text-[11px] font-black tracking-normal">
+              ₹ {safeProduct.mrp}
+            </div>
+          </div>
+
+        </div>
+
+        {/* FSSAI Row */}
+        <div className="h-[4.2mm] w-full flex items-center justify-center border-t-[1.5px] border-black px-2">
+          <img src={fssaiLogo} alt="fssai" className="h-[3.2mm] w-auto object-contain inline-block mr-1" />
+          <span className="font-black text-[9px] tracking-wider leading-none">: 22724674000012</span>
+        </div>
+
+      </div>
+
+      {/* 4. FOOTER DETAILS */}
+      <div className="flex-1 w-full flex flex-col justify-center items-center text-center mt-[0.8mm] gap-[0.3mm]">
+        
+        {/* Ingredients */}
+        <div className="shrink-0 w-full flex items-center justify-center font-black text-[7px] uppercase leading-tight tracking-tight text-center">
+          <span className="font-black">INGREDIENTS:&nbsp;</span>
+          <span className="font-bold">{safeProduct.ingredients}</span>
+        </div>
+
+        {/* Best Before */}
+        <div className="shrink-0 text-[6.8px] font-black uppercase leading-tight tracking-tight">
+          BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING.
+        </div>
+
+        {/* Manufactured & Marketed By */}
+        <div className="shrink-0 text-[6.8px] font-black uppercase leading-tight tracking-tight">
+          MANUFACTURED AND MARKETED BY: SANCHI FOOD PRODUCT
+        </div>
+
+        {/* Address & Helpline */}
+        <div className="shrink-0 text-[6.8px] font-black uppercase leading-tight tracking-tight">
+          S.MANDIR, S.K. ROAD, MEERUT. HELP LINE: 9719027727
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

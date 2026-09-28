@@ -7,7 +7,7 @@ This document outlines the primary agents, modules, and services interacting wit
 
 ## 2. Frontend Application Agents (Client-Side)
 * **React POS Dashboard (`Home.jsx`):** The central command hub. Manages local state for product selection, template switching, and print copy quantities (capped at 500 to prevent memory leaks).
-* **Template Engine (`Template1.jsx`, `Template4.jsx`):** The rendering agents responsible for generating millimeter-perfect (75mm x 50mm) HTML/Tailwind layouts that mimic exact Canva designs. Utilizes CSS `flex`, `shrink-0`, and `page-break` rules to protect grid integrity during rendering.
+* **Template Engine (`Template1.jsx`, `Template2.jsx`, `Template3.jsx`, `Template4.jsx`):** The rendering agents responsible for generating millimeter-perfect (75mm x 50mm) HTML/Tailwind layouts that mimic exact Canva designs. Utilizes CSS `flex`, `shrink-0`, and `page-break` rules to protect grid integrity during rendering.
 * **AutoFitText Agent (`AutoFitText.jsx`):** A smart typography engine. It calculates container bounds (width/height) and iteratively scales down font sizes (mapping Canva `pt` equivalents to web `px`) to prevent text overflow. It intelligently decides when to force a single line versus wrapping text.
 * **Date Logic Module (`dateLogic.js`):** A utility agent that automatically calculates current batch numbers and packaging dates based on the current system time.
 

@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { getLabelDates } from '../utils/dateLogic';
 import Template1 from '../components/Template1';
 import Template2 from '../components/Template2';
+import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
 import { Search, Check } from 'lucide-react';
 
@@ -133,7 +134,10 @@ export default function Home() {
                 {selectedProduct.hasNutrition ? (
                   <option value={1}>Template 1: Nutrition & Details</option>
                 ) : (
-                  <option value={2}>Template 2: Product Details</option>
+                  <>
+                    <option value={2}>Template 2: Product Details</option>
+                    <option value={3}>Template 3: Brand & Details</option>
+                  </>
                 )}
                 <option value={4}>Template 4: 3-in-1 Name Strips</option>
               </select>
@@ -168,6 +172,7 @@ export default function Home() {
           <div className="bg-white p-4 shadow-xl border border-stone-200">
             {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
             {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+            {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
             {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
           </div>
         ) : (
@@ -194,6 +199,7 @@ export default function Home() {
             <div key={index} className="label-page">
               {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
               {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+              {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
               {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
             </div>
           ))}

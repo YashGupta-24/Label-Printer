@@ -13,7 +13,7 @@ export default function Template2({ product, batchNo, packedOn }) {
   // Format net weight to avoid duplicating "gram" if user already typed it
   const formattedWeight = safeProduct.netWeight.toLowerCase().includes('g') 
     ? safeProduct.netWeight 
-    : `${safeProduct.netWeight} gram`;
+    : `${safeProduct.netWeight} g`;
 
   return (
     <div className="w-[75mm] h-[50mm] overflow-hidden bg-white text-black flex flex-col box-border px-[2mm] pt-[1.5mm] pb-[1.5mm] break-inside-avoid [word-spacing:0.12em]">
