@@ -1,7 +1,7 @@
 // src/components/AutoFitText.jsx
 import React, { useRef, useLayoutEffect, useState } from 'react';
 
-export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, allowWrap = false, className = "" }) {
+export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, allowWrap = false, wrapLineHeight = "1.2", singleLineHeight = "0.9", className = "" }) {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const [isWrapping, setIsWrapping] = useState(false);
@@ -16,7 +16,7 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
     
     const calculateFit = (testWrapping) => {
       textElement.style.whiteSpace = testWrapping ? 'normal' : 'nowrap';
-      textElement.style.lineHeight = testWrapping ? '0.95' : '0.85';
+      textElement.style.lineHeight = testWrapping ? String(wrapLineHeight) : String(singleLineHeight);
       let currentSize = maxFontSize;
       textElement.style.fontSize = `${currentSize}px`;
 
@@ -28,7 +28,7 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
       };
 
       while (!checkFit() && currentSize > minFontSize) {
-        currentSize -= 1;
+        currentSize -= 0.5;
         textElement.style.fontSize = `${currentSize}px`;
       }
       
@@ -40,12 +40,12 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
 
     // If it failed to fit on one line (even at the minimum size) AND wrapping is allowed...
     if (!singleLineResult.fits && allowWrap) {
-       // Attempt 2: Switch to two lines
+       // Attempt 2: Switch to two lines with comfortable line spacing
        setIsWrapping(true);
        calculateFit(true);
     }
 
-  }, [text, maxFontSize, minFontSize, allowWrap]);
+  }, [text, maxFontSize, minFontSize, allowWrap, wrapLineHeight, singleLineHeight]);
 
   return (
     <div ref={containerRef} className={`w-full h-full overflow-hidden flex items-center justify-center ${className}`}>
@@ -53,7 +53,7 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
         ref={textRef} 
         style={{ 
           whiteSpace: isWrapping ? 'normal' : 'nowrap', 
-          lineHeight: isWrapping ? '0.95' : '0.85', 
+          lineHeight: isWrapping ? wrapLineHeight : singleLineHeight, 
           display: 'inline-block',
           textAlign: 'center',
           maxWidth: '100%'
