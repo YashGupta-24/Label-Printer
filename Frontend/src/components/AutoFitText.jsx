@@ -7,44 +7,63 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
   const [isWrapping, setIsWrapping] = useState(false);
 
   useLayoutEffect(() => {
+    let isMounted = true;
     const container = containerRef.current;
     const textElement = textRef.current;
     if (!container || !textElement) return;
 
-    // Reset wrapping state when text changes
-    setIsWrapping(false);
-    
-    const calculateFit = (testWrapping) => {
-      textElement.style.whiteSpace = testWrapping ? 'normal' : 'nowrap';
-      textElement.style.lineHeight = testWrapping ? String(wrapLineHeight) : String(singleLineHeight);
-      let currentSize = maxFontSize;
-      textElement.style.fontSize = `${currentSize}px`;
+    const runFit = () => {
+      if (!isMounted || !containerRef.current || !textRef.current) return;
+      const c = containerRef.current;
+      const t = textRef.current;
 
-      const checkFit = () => {
-        // Tolerances for font rendering metrics
-        const widthFits = textElement.scrollWidth <= (container.clientWidth + 1);
-        const heightFits = textElement.scrollHeight <= (container.clientHeight + 2);
-        return widthFits && heightFits;
+      setIsWrapping(false);
+
+      const calculateFit = (testWrapping) => {
+        t.style.whiteSpace = testWrapping ? 'normal' : 'nowrap';
+        t.style.lineHeight = testWrapping ? String(wrapLineHeight) : String(singleLineHeight);
+        let currentSize = maxFontSize;
+        t.style.fontSize = `${currentSize}px`;
+
+        const checkFit = () => {
+          const widthFits = t.scrollWidth <= (c.clientWidth + 1);
+          const heightFits = t.scrollHeight <= (c.clientHeight + 2);
+          return widthFits && heightFits;
+        };
+
+        while (!checkFit() && currentSize > minFontSize) {
+          currentSize -= 0.5;
+          t.style.fontSize = `${currentSize}px`;
+        }
+
+        return { fits: checkFit(), size: currentSize };
       };
 
-      while (!checkFit() && currentSize > minFontSize) {
-        currentSize -= 0.5;
-        textElement.style.fontSize = `${currentSize}px`;
+      const singleLineResult = calculateFit(false);
+
+      if (!singleLineResult.fits && allowWrap) {
+        setIsWrapping(true);
+        calculateFit(true);
       }
-      
-      return { fits: checkFit(), size: currentSize };
     };
 
-    // Attempt 1: Force it onto a single line
-    const singleLineResult = calculateFit(false);
+    runFit();
 
-    // If it failed to fit on one line (even at the minimum size) AND wrapping is allowed...
-    if (!singleLineResult.fits && allowWrap) {
-       // Attempt 2: Switch to two lines with comfortable line spacing
-       setIsWrapping(true);
-       calculateFit(true);
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        if (isMounted) runFit();
+      });
     }
 
+    const ro = new ResizeObserver(() => {
+      if (isMounted) runFit();
+    });
+    ro.observe(container);
+
+    return () => {
+      isMounted = false;
+      ro.disconnect();
+    };
   }, [text, maxFontSize, minFontSize, allowWrap, wrapLineHeight, singleLineHeight]);
 
   return (
@@ -56,7 +75,9 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
           lineHeight: isWrapping ? wrapLineHeight : singleLineHeight, 
           display: 'inline-block',
           textAlign: 'center',
-          maxWidth: '100%'
+          maxWidth: '100%',
+          WebkitTextSizeAdjust: '100%',
+          textSizeAdjust: '100%'
         }}
       >
         {text}

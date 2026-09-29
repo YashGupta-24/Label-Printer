@@ -2,6 +2,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&family=Noto+Sans:wght@700;900&display=swap');
 @import "tailwindcss";
 
+html, body, #root, * {
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
 body {
   font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
   font-weight: 700;

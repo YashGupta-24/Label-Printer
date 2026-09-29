@@ -17,7 +17,7 @@ export default function Template3({ product, batchNo, packedOn }) {
     : `${safeProduct.netWeight} gram`;
 
   return (
-    <div className="w-[75mm] h-[50mm] overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">
+    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">
       
       {/* 1. TOP TAGLINE WITH STARS */}
       <div className="shrink-0 h-[3.8mm] w-full flex items-center justify-center text-black font-black text-[9.5px] leading-none tracking-[0.03em] whitespace-nowrap">

@@ -26,7 +26,7 @@ export default function Template1({ product, batchNo, packedOn }) {
   };
 
   return (
-    <div className="w-[75mm] h-[50mm] overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">
+    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">
       
       {/* 1. PRODUCT NAME */}
       <div className="shrink-0 h-[11.5mm] w-full flex items-center justify-center font-black uppercase tracking-[0.04em] text-center p-0 m-0">

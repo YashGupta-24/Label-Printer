@@ -48,10 +48,18 @@ const CRITICAL_CSS_PROPERTIES = [
   'textTransform',
   'whiteSpace',
   'wordBreak',
+  'gap',
+  'rowGap',
+  'columnGap',
+  'objectFit',
+  'verticalAlign',
+  'textDecoration',
   'backgroundColor',
   'color',
   'overflow',
-  'position'
+  'position',
+  'webkitTextSizeAdjust',
+  'textSizeAdjust'
 ];
 
 /**
@@ -107,19 +115,40 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
   if (document.fonts) {
     try {
       await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
     } catch (e) {
       console.warn("Font loading wait skipped:", e);
     }
   }
 
   try {
+    const rect = element.getBoundingClientRect();
+    const elemWidth = Math.round(element.offsetWidth || rect.width);
+    const elemHeight = Math.round(element.offsetHeight || rect.height);
+
     const canvas = await html2canvas(element, {
       backgroundColor: '#ffffff',
       scale: 2, // Double resolution capture for crisp downsampling
       useCORS: true,
       logging: false,
       allowTaint: true,
+      width: elemWidth,
+      height: elemHeight,
+      windowWidth: 1200, // Enforce uniform desktop viewport for cloned rendering
+      scrollX: 0,
+      scrollY: 0,
       onclone: (clonedDoc) => {
+        try {
+          if (clonedDoc.documentElement) {
+            clonedDoc.documentElement.style.webkitTextSizeAdjust = '100%';
+            clonedDoc.documentElement.style.textSizeAdjust = '100%';
+          }
+          if (clonedDoc.body) {
+            clonedDoc.body.style.webkitTextSizeAdjust = '100%';
+            clonedDoc.body.style.textSizeAdjust = '100%';
+          }
+        } catch (_) {}
+
         // 1. Copy all head styles and stylesheets into the cloned document
         try {
           const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
@@ -133,6 +162,8 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
         // 2. Locate the cloned preview root in the cloned document
         const clonedRoot = clonedDoc.querySelector('[data-label-preview="true"]') || clonedDoc.body.querySelector('div');
         if (clonedRoot) {
+          clonedRoot.style.webkitTextSizeAdjust = '100%';
+          clonedRoot.style.textSizeAdjust = '100%';
           inlineAllComputedStyles(element, clonedRoot);
         }
       }
