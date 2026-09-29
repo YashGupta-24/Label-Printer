@@ -94,11 +94,11 @@ export default function Template1({ product, batchNo, packedOn }) {
             <div className="w-[55%] h-full flex items-center px-[2px] font-black text-[8px] whitespace-nowrap">{packedOn}</div>
           </div>
           <div className="flex flex-1 items-center bg-white">
-            <div className="w-[46%] h-full flex flex-col justify-center border-r-[1.5px] border-black px-[2px]">
+            <div className="w-[45%] h-full flex flex-col justify-center border-r-[1.5px] border-black px-[2px]">
               <span className="leading-tight text-[8px] whitespace-nowrap">M.R.P</span>
-              <span className="text-[5.2px] font-normal leading-none whitespace-nowrap tracking-tight">(Incl. all Taxes)</span>
+              <span className="text-[6px] font-normal leading-none whitespace-nowrap tracking-tight">(Incl. all Taxes)</span>
             </div>
-            <div className="w-[54%] h-full flex items-center px-[2px] text-[11px] font-black tracking-normal whitespace-nowrap">
+            <div className="w-[55%] h-full flex items-center px-[2px] text-[11px] font-black tracking-normal whitespace-nowrap">
               ₹ {safeProduct.mrp}
             </div>
           </div>
