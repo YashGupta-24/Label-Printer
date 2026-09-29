@@ -111,10 +111,16 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
     throw new Error("No DOM element provided for rasterization.");
   }
 
-  // Ensure fonts are fully loaded before capture
+  // Ensure fonts are explicitly loaded before capture
   if (document.fonts) {
     try {
-      await document.fonts.ready;
+      await Promise.allSettled([
+        document.fonts.load('700 16px "Noto Sans"'),
+        document.fonts.load('900 16px "Noto Sans"'),
+        document.fonts.load('700 16px "Noto Sans Devanagari"'),
+        document.fonts.load('900 16px "Noto Sans Devanagari"'),
+        document.fonts.ready
+      ]);
       await new Promise((resolve) => requestAnimationFrame(resolve));
     } catch (e) {
       console.warn("Font loading wait skipped:", e);
@@ -122,22 +128,13 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
   }
 
   try {
-    const rect = element.getBoundingClientRect();
-    const elemWidth = Math.round(element.offsetWidth || rect.width);
-    const elemHeight = Math.round(element.offsetHeight || rect.height);
-
     const canvas = await html2canvas(element, {
       backgroundColor: '#ffffff',
       scale: 2, // Double resolution capture for crisp downsampling
       useCORS: true,
       logging: false,
       allowTaint: true,
-      width: elemWidth,
-      height: elemHeight,
-      windowWidth: 1200, // Enforce uniform desktop viewport for cloned rendering
-      scrollX: 0,
-      scrollY: 0,
-      onclone: (clonedDoc) => {
+      onclone: async (clonedDoc) => {
         try {
           if (clonedDoc.documentElement) {
             clonedDoc.documentElement.style.webkitTextSizeAdjust = '100%';
@@ -148,6 +145,18 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
             clonedDoc.body.style.textSizeAdjust = '100%';
           }
         } catch (_) {}
+
+        // Transfer loaded FontFace instances directly into cloned iframe document
+        if (document.fonts && clonedDoc.fonts) {
+          try {
+            for (const font of document.fonts) {
+              clonedDoc.fonts.add(font);
+            }
+            await clonedDoc.fonts.ready;
+          } catch (fontErr) {
+            console.warn("Could not transfer fonts to clone:", fontErr);
+          }
+        }
 
         // 1. Copy all head styles and stylesheets into the cloned document
         try {
