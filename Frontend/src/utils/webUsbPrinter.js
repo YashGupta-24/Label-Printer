@@ -44,6 +44,8 @@ export async function printTsplBufferViaUsb(device, tsplBuffer) {
     throw new Error("No USB device provided.");
   }
 
+  let targetInterfaceNumber = null;
+
   try {
     if (!device.opened) {
       await device.open();
@@ -54,7 +56,6 @@ export async function printTsplBufferViaUsb(device, tsplBuffer) {
     }
 
     // Find the USB interface that has an OUT endpoint
-    let targetInterfaceNumber = 0;
     let targetEndpointNumber = 1;
     let found = false;
 
@@ -73,11 +74,15 @@ export async function printTsplBufferViaUsb(device, tsplBuffer) {
       if (found) break;
     }
 
-    if (!found) {
+    if (!found || targetInterfaceNumber === null) {
       throw new Error("Could not find a valid USB OUT endpoint for writing to the printer.");
     }
 
-    await device.claimInterface(targetInterfaceNumber);
+    // Only claim if not already claimed
+    const targetIface = device.configuration?.interfaces?.find(i => i.interfaceNumber === targetInterfaceNumber);
+    if (!targetIface?.claimed) {
+      await device.claimInterface(targetInterfaceNumber);
+    }
 
     // Send payload in chunks (e.g. 16KB per transfer) to prevent buffer overflows
     const chunkSize = 16384;
@@ -89,6 +94,18 @@ export async function printTsplBufferViaUsb(device, tsplBuffer) {
     return { success: true };
   } catch (error) {
     console.error("USB Print Error:", error);
+    try {
+      if (device.opened && targetInterfaceNumber !== null) {
+        await device.releaseInterface(targetInterfaceNumber);
+      }
+    } catch (_) {}
     throw error;
+  } finally {
+    // Always release the interface after transmission so subsequent prints or other apps are not blocked
+    try {
+      if (device.opened && targetInterfaceNumber !== null) {
+        await device.releaseInterface(targetInterfaceNumber);
+      }
+    } catch (_) {}
   }
 }
