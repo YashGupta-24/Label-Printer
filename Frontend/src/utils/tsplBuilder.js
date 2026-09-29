@@ -73,6 +73,8 @@ export function buildTsplBuffer(canvas, copies = 1, options = {}) {
     `SIZE ${widthMm} mm, ${heightMm} mm`,
     `GAP ${gapMm} mm, 0 mm`,
     `DIRECTION ${direction}, 0`,
+    `DENSITY 12`,
+    `SPEED 2`,
     `CLS`,
     `BITMAP 0,0,${widthBytes},${targetHeight},0,`
   ].join('\r\n');

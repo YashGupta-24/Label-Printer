@@ -42,7 +42,6 @@ const CRITICAL_CSS_PROPERTIES = [
   'fontSize',
   'fontWeight',
   'fontStyle',
-  'letterSpacing',
   'lineHeight',
   'textAlign',
   'textTransform',
