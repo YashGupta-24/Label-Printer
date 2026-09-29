@@ -293,7 +293,7 @@ export default function Home() {
           <div className="w-full flex flex-col items-center">
             {/* Scrollable container on small viewports so 75mm label never clips */}
             <div className="max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-2xl border border-stone-300 flex justify-center shadow-inner">
-              <div ref={previewRef} className="inline-block bg-white shadow-md">
+              <div ref={previewRef} data-label-preview="true" className="inline-block bg-white shadow-md">
                 {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                 {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                 {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}

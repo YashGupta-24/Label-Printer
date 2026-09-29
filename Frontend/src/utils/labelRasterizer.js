@@ -55,16 +55,19 @@ const CRITICAL_CSS_PROPERTIES = [
 ];
 
 /**
- * Copies computed styles from the live preview DOM tree onto the cloned DOM tree.
- * This guarantees 100% styling parity in production builds without depending on external CSS loading.
+ * Copies computed styles from the live preview DOM tree onto the target DOM tree.
+ * This bakes all styles directly into inline style attributes so no external CSS is needed.
  */
-function inlineAllComputedStyles(sourceElement, clonedElement) {
-  const sourceNodes = [sourceElement, ...sourceElement.querySelectorAll('*')];
-  const clonedNodes = [clonedElement, ...clonedElement.querySelectorAll('*')];
+function inlineAllComputedStyles(sourceElement, destElement) {
+  if (!sourceElement || !destElement) return;
 
-  for (let i = 0; i < sourceNodes.length && i < clonedNodes.length; i++) {
+  const sourceNodes = [sourceElement, ...Array.from(sourceElement.querySelectorAll('*'))];
+  const destNodes = [destElement, ...Array.from(destElement.querySelectorAll('*'))];
+
+  const count = Math.min(sourceNodes.length, destNodes.length);
+  for (let i = 0; i < count; i++) {
     const src = sourceNodes[i];
-    const dest = clonedNodes[i];
+    const dest = destNodes[i];
 
     if (src.nodeType === 1 && dest.nodeType === 1) {
       const computed = window.getComputedStyle(src);
@@ -72,10 +75,9 @@ function inlineAllComputedStyles(sourceElement, clonedElement) {
       for (const prop of CRITICAL_CSS_PROPERTIES) {
         let value = computed[prop];
         if (value) {
-          // Sanitize any modern CSS color functions that can break canvas rendering
+          // Normalize modern color spaces (oklch/lab) that can break canvas rendering
           if (typeof value === 'string' && (value.includes('oklch') || value.includes('lab') || value.includes('lch'))) {
             if (prop === 'backgroundColor') {
-              // If it's a dark element (like the black banner), make it black; otherwise white
               const isDark = src.classList.contains('bg-black') || src.classList.contains('bg-stone-900') || src.classList.contains('bg-stone-800');
               value = isDark ? '#000000' : '#ffffff';
             } else if (prop === 'color') {
@@ -110,39 +112,90 @@ export async function rasterizeElementToCanvas(element, targetWidth = 600, targe
     }
   }
 
-  const canvas = await html2canvas(element, {
-    backgroundColor: '#ffffff',
-    scale: 2, // Double resolution capture for crisp downsampling
-    useCORS: true,
-    logging: false,
-    allowTaint: true,
-    onclone: (clonedDoc, clonedElement) => {
-      // 1. Copy all head styles and stylesheets into the cloned document
-      try {
-        const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
-        styleTags.forEach(tag => {
-          clonedDoc.head.appendChild(tag.cloneNode(true));
-        });
-      } catch (err) {
-        console.warn("Could not copy stylesheet links:", err);
+  try {
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#ffffff',
+      scale: 2, // Double resolution capture for crisp downsampling
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      onclone: (clonedDoc) => {
+        // 1. Copy all head styles and stylesheets into the cloned document
+        try {
+          const styleTags = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
+          styleTags.forEach(tag => {
+            clonedDoc.head.appendChild(tag.cloneNode(true));
+          });
+        } catch (err) {
+          console.warn("Could not copy stylesheet links:", err);
+        }
+
+        // 2. Locate the cloned preview root in the cloned document
+        const clonedRoot = clonedDoc.querySelector('[data-label-preview="true"]') || clonedDoc.body.querySelector('div');
+        if (clonedRoot) {
+          inlineAllComputedStyles(element, clonedRoot);
+        }
       }
+    });
 
-      // 2. Direct style inlining: copy live computed styles directly onto the cloned element
-      inlineAllComputedStyles(element, clonedElement);
-    }
-  });
+    // Scale down to exact target dimensions (600x400) with high quality
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    const ctx = finalCanvas.getContext('2d');
+    
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, targetWidth, targetHeight);
+    ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
 
-  // Scale down to exact target dimensions (600x400) with high quality
-  const finalCanvas = document.createElement('canvas');
-  finalCanvas.width = targetWidth;
-  finalCanvas.height = targetHeight;
-  const ctx = finalCanvas.getContext('2d');
-  
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, targetWidth, targetHeight);
-  ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+    return finalCanvas;
+  } catch (html2canvasError) {
+    console.warn("html2canvas failed, falling back to direct native SVG foreignObject rasterizer:", html2canvasError);
+    
+    // Native Fallback: Zero-dependency SVG ForeignObject rendering
+    return new Promise((resolve, reject) => {
+      try {
+        const clone = element.cloneNode(true);
+        inlineAllComputedStyles(element, clone);
 
-  return finalCanvas;
+        const html = new XMLSerializer().serializeToString(clone);
+        const svgString = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${targetWidth}" height="${targetHeight}">
+            <foreignObject width="100%" height="100%">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="width:${targetWidth}px;height:${targetHeight}px;background:#ffffff;margin:0;padding:0;box-sizing:border-box;">
+                ${html}
+              </div>
+            </foreignObject>
+          </svg>
+        `;
+
+        const img = new Image();
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = () => {
+          const fallbackCanvas = document.createElement('canvas');
+          fallbackCanvas.width = targetWidth;
+          fallbackCanvas.height = targetHeight;
+          const ctx = fallbackCanvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, targetWidth, targetHeight);
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          URL.revokeObjectURL(url);
+          resolve(fallbackCanvas);
+        };
+
+        img.onerror = (err) => {
+          URL.revokeObjectURL(url);
+          reject(err);
+        };
+
+        img.src = url;
+      } catch (fallbackError) {
+        reject(fallbackError);
+      }
+    });
+  }
 }
