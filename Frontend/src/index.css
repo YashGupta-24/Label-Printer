@@ -1,23 +1,23 @@
 /* src/index.css */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&family=Noto+Sans:wght@700;900&display=swap');
 @import "tailwindcss";
 
-html, body, #root, * {
-  -webkit-text-size-adjust: 100% !important;
-  text-size-adjust: 100% !important;
-}
+@layer base {
+  html, body, #root, * {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
 
-body {
-  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
-  font-weight: 700;
-  background-color: #f3f4f6; /* Light gray background for the app */
-  margin: 0;
+  body {
+    font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 700;
+    background-color: #f3f4f6;
+    margin: 0;
+  }
 }
 
 /* --- SCREEN SPECIFIC RULES (The Background Calculator) --- */
 @media screen {
   .print-wrapper {
-    /* Moves the labels 9,999 pixels off-screen so React can measure them invisibly */
     position: absolute !important;
     left: -9999px !important;
     top: -9999px !important;
@@ -42,7 +42,6 @@ body {
   }
   
   .print-wrapper {
-    /* Brings the labels back to the center of the paper during printing */
     position: static !important;
     display: block !important;
   }
@@ -51,7 +50,7 @@ body {
     width: 75mm;
     height: 50mm;
     margin: 0 !important;
-    padding: 0 !important; /* No more wrapper padding */
+    padding: 0 !important;
     overflow: hidden;
     page-break-after: always;
     page-break-inside: avoid;

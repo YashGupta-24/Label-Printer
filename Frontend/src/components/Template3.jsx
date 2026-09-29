@@ -6,7 +6,7 @@ import fssaiLogo from '../assets/fssai_logo_crisp.png';
 export default function Template3({ product, batchNo, packedOn }) {
   const safeProduct = {
     productName: product?.productName || "ROASTED CHANA",
-    netWeight: product?.netWeight || "300 gram",
+    netWeight: product?.netWeight || "300",
     mrp: product?.mrp || "85.00",
     ingredients: product?.ingredients || "ROASTED CHANA"
   };
@@ -14,7 +14,7 @@ export default function Template3({ product, batchNo, packedOn }) {
   // Format net weight to avoid duplicating "gram" if user already typed it
   const formattedWeight = safeProduct.netWeight.toLowerCase().includes('g') 
     ? safeProduct.netWeight 
-    : `${safeProduct.netWeight} gram`;
+    : `${safeProduct.netWeight} g`;
 
   return (
     <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">

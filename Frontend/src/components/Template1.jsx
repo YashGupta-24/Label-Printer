@@ -13,7 +13,7 @@ export default function Template1({ product, batchNo, packedOn }) {
   const rawNutrition = product?.nutritionalFacts || {};
   const safeProduct = {
     productName: product?.productName || "SAMPLE PRODUCT",
-    netWeight: product?.netWeight || "150 g",
+    netWeight: product?.netWeight || "150",
     mrp: product?.mrp || "100.00",
     ingredients: product?.ingredients || "INGREDIENTS PENDING",
     nutritionalFacts: {
@@ -24,6 +24,10 @@ export default function Template1({ product, batchNo, packedOn }) {
       sugar: getNutritionValue(rawNutrition.sugar)
     }
   };
+
+  const formattedWeight = safeProduct.netWeight.toLowerCase().includes('g') 
+    ? safeProduct.netWeight 
+    : `${safeProduct.netWeight} g`;
 
   return (
     <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[1.5mm] pt-[1mm] pb-[1mm] break-inside-avoid">
@@ -87,7 +91,7 @@ export default function Template1({ product, batchNo, packedOn }) {
           </div>
           <div className="flex border-b-[1.5px] border-black flex-1 items-center">
             <div className="w-[45%] h-full flex items-center border-r-[1.5px] border-black px-[2px] text-[7.5px] whitespace-nowrap">Net Wt.</div>
-            <div className="w-[55%] h-full flex items-center px-[2px] font-black text-[8px] whitespace-nowrap">{safeProduct.netWeight} g</div>
+            <div className="w-[55%] h-full flex items-center px-[2px] font-black text-[8px] whitespace-nowrap">{formattedWeight}</div>
           </div>
           <div className="flex border-b-[1.5px] border-black flex-1 items-center">
             <div className="w-[45%] h-full flex items-center border-r-[1.5px] border-black px-[2px] text-[7.5px] whitespace-nowrap">Packed On</div>
