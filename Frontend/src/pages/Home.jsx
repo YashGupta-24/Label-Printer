@@ -9,6 +9,7 @@ import Template2 from '../components/Template2';
 import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
 import { rasterizeElementToCanvas } from '../utils/labelRasterizer';
+import { renderTemplateToCanvas } from '../utils/labelCanvasBlueprint';
 import { buildTsplBuffer } from '../utils/tsplBuilder';
 import { isWebUsbSupported, requestUsbPrinter, printTsplBufferViaUsb, getPairedPrinters } from '../utils/webUsbPrinter';
 import { Search, Check, Zap, Usb } from 'lucide-react';
@@ -117,9 +118,13 @@ export default function Home() {
         setUsbDevice(device);
       }
 
-      setUsbStatusMessage('Rasterizing label at 203 DPI...');
-      // Exact native 203 DPI: 75mm x 50mm = 600 x 400 pixels
-      const canvas = await rasterizeElementToCanvas(previewRef.current, 600, 400);
+      setUsbStatusMessage('Generating label at 203 DPI...');
+      // On mobile devices, use the dedicated 600x400 Canvas blueprint generator (eliminates all mobile screenshot quirks)
+      // On laptop/desktop, preserve existing rasterizeElementToCanvas behavior
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const canvas = isMobile
+        ? await renderTemplateToCanvas(selectedTemplate, selectedProduct, dates)
+        : await rasterizeElementToCanvas(previewRef.current, 600, 400);
 
       setUsbStatusMessage('Generating TSPL commands...');
       const numCopies = Number(copies) || 1;
