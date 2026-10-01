@@ -26,8 +26,8 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
         t.style.fontSize = `${currentSize}px`;
 
         const checkFit = () => {
-          const widthFits = t.scrollWidth <= (c.clientWidth + 1);
-          const heightFits = t.scrollHeight <= (c.clientHeight + 2);
+          const widthFits = t.scrollWidth <= c.clientWidth;
+          const heightFits = t.scrollHeight <= c.clientHeight;
           return widthFits && heightFits;
         };
 
@@ -60,9 +60,12 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
     });
     ro.observe(container);
 
+    window.addEventListener('beforeprint', runFit);
+
     return () => {
       isMounted = false;
       ro.disconnect();
+      window.removeEventListener('beforeprint', runFit);
     };
   }, [text, maxFontSize, minFontSize, allowWrap, wrapLineHeight, singleLineHeight]);
 

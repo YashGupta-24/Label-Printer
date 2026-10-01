@@ -52,7 +52,7 @@ export default function Template1({ product, batchNo, packedOn }) {
         {/* --- LEFT TABLE (Nutrition) --- */}
         <div className="w-[58%] border-[2px] border-black flex flex-col text-[8px] leading-tight font-bold tracking-[0.02em]">
           {/* Header */}
-          <div className="h-[5mm] flex items-center justify-center text-center border-b-[1.5px] border-black text-[6.8px] font-black tracking-tight whitespace-nowrap px-0.5">
+          <div className="h-[5mm] flex items-center justify-center text-center border-b-[1.5px] border-black text-[7px] font-black tracking-[0.03em] whitespace-nowrap px-0.5">
             NUTRITIONAL FACTS (Approx.) Per 100g
           </div>
           {/* Rows */}
@@ -100,7 +100,7 @@ export default function Template1({ product, batchNo, packedOn }) {
           <div className="flex flex-1 items-center bg-white">
             <div className="w-[45%] h-full flex flex-col justify-center border-r-[1.5px] border-black px-[2px]">
               <span className="leading-tight text-[8px] whitespace-nowrap">M.R.P</span>
-              <span className="text-[6px] font-normal leading-none whitespace-nowrap tracking-tight">(Incl. all Taxes)</span>
+              <span className="text-[6px] font-normal leading-none whitespace-nowrap">(Incl. all Taxes)</span>
             </div>
             <div className="w-[55%] h-full flex items-center px-[2px] text-[11px] font-black tracking-normal whitespace-nowrap">
               ₹ {safeProduct.mrp}

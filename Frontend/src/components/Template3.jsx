@@ -74,7 +74,7 @@ export default function Template3({ product, batchNo, packedOn }) {
             </div>
             <div className="w-[24%] h-full flex flex-col justify-center border-r-[1.5px] border-black px-[2px] leading-tight">
               <span className="text-[7.5px] font-bold whitespace-nowrap">M.R.P</span>
-              <span className="text-[5.5px] font-normal leading-none whitespace-nowrap tracking-tight">(Incl. of All Taxes)</span>
+              <span className="text-[6.5px] font-normal leading-none whitespace-nowrap">(Incl. of All Taxes)</span>
             </div>
             <div className="w-[26%] h-full flex items-center px-[3px] text-[11px] font-black tracking-normal whitespace-nowrap">
               ₹ {safeProduct.mrp}
@@ -95,9 +95,15 @@ export default function Template3({ product, batchNo, packedOn }) {
       <div className="flex-1 w-full flex flex-col justify-center items-center text-center mt-[0.8mm] gap-[0.3mm]">
         
         {/* Ingredients */}
-        <div className="shrink-0 w-full flex items-center justify-center font-black text-[7px] uppercase leading-tight tracking-[0.04em] text-center">
-          <span className="font-black shrink-0">INGREDIENTS:&nbsp;</span>
-          <span className="font-bold">{safeProduct.ingredients}</span>
+        <div className="shrink-0 w-[98%] h-[3.8mm] flex items-center justify-center">
+          <AutoFitText 
+            text={`INGREDIENTS: ${safeProduct.ingredients}`} 
+            maxFontSize={7.5} 
+            minFontSize={5.5} 
+            allowWrap={true}  
+            wrapLineHeight="1.15"
+            className="font-bold uppercase tracking-[0.03em]"
+          />
         </div>
 
         {/* Best Before */}
