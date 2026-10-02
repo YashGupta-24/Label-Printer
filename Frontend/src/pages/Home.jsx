@@ -8,6 +8,7 @@ import Template1 from '../components/Template1';
 import Template2 from '../components/Template2';
 import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
+import Template5 from '../components/Template5';
 import { Search, Check, Plus, Minus, Trash2, Printer, Layers } from 'lucide-react';
 
 const TEMPLATE_NAMES = {
@@ -15,6 +16,7 @@ const TEMPLATE_NAMES = {
   2: 'Template 2: Product Details',
   3: 'Template 3: Brand & Details',
   4: 'Template 4: 3-in-1 Name Strips',
+  5: 'Template 5: Brand Name & Details',
 };
 
 export default function Home() {
@@ -25,7 +27,38 @@ export default function Home() {
   const [selectedTemplate, setSelectedTemplate] = useState(1);
   const [copies, setCopies] = useState(1);
   const [dates] = useState(() => getLabelDates());
-  const [printQueue, setPrintQueue] = useState([]);
+  const [printQueue, setPrintQueue] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pos_print_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Error reading print queue from localStorage:", e);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pos_print_queue', JSON.stringify(printQueue));
+    } catch (e) {
+      console.error("Error saving print queue to localStorage:", e);
+    }
+  }, [printQueue]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setPrintQueue([]);
+      setSelectedProduct(null);
+      try {
+        localStorage.removeItem('pos_print_queue');
+      } catch (e) {
+        console.error("Error clearing print queue after print:", e);
+      }
+    };
+
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -47,6 +80,25 @@ export default function Home() {
   const filteredProducts = availableProducts.filter(p =>
     p.productName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const sortedFilteredProducts = [...filteredProducts].sort((a, b) => {
+    const nameA = a.productName || '';
+    const nameB = b.productName || '';
+    const aIsHindi = /[\u0900-\u097F]/.test(nameA);
+    const bIsHindi = /[\u0900-\u097F]/.test(nameB);
+
+    // English names come before Hindi names
+    if (!aIsHindi && bIsHindi) return -1;
+    if (aIsHindi && !bIsHindi) return 1;
+
+    // Both Hindi: sort by Hindi locale
+    if (aIsHindi && bIsHindi) {
+      return nameA.localeCompare(nameB, 'hi');
+    }
+
+    // Both English: sort alphabetically A-Z
+    return nameA.localeCompare(nameB, 'en', { sensitivity: 'base' });
+  });
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -151,7 +203,7 @@ export default function Home() {
 
             {/* Product List */}
             <div className="max-h-48 overflow-y-auto space-y-2 mb-5 pr-1">
-              {filteredProducts.length === 0 ? (
+              {sortedFilteredProducts.length === 0 ? (
                 <div className="text-center py-6 text-stone-400 font-bold text-sm">
                   {products.length === 0
                     ? 'Loading products...'
@@ -160,7 +212,7 @@ export default function Home() {
                     : 'No matching products.'}
                 </div>
               ) : (
-                filteredProducts.map(product => {
+                sortedFilteredProducts.map(product => {
                   const isSelected = selectedProduct?.id === product.id;
                   return (
                     <div
@@ -207,6 +259,7 @@ export default function Home() {
                       <>
                         <option value={2}>Template 2: Product Details</option>
                         <option value={3}>Template 3: Brand & Details</option>
+                        <option value={5}>Template 5: Brand Name & Details</option>
                       </>
                     )}
                     <option value={4}>Template 4: 3-in-1 Name Strips</option>
@@ -346,11 +399,58 @@ export default function Home() {
         </div>
 
         {/* Right Column: Live Previews */}
-        <div className="no-print w-full flex-1 flex flex-col items-center">
-          
-          {printQueue.length > 0 ? (
+        <div className="no-print w-full flex-1 flex flex-col items-center gap-6">
+
+          {/* 1. Live Selection Preview: ALWAYS visible when a product is selected */}
+          {selectedProduct && (
             <div className="w-full flex flex-col items-center">
-              <div className="w-full flex items-center justify-between mb-4 px-1">
+              <div className="w-full flex items-center justify-between mb-3 px-1">
+                <h2 className="text-xs sm:text-sm font-black tracking-widest text-stone-500 uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Live Selection Preview</span>
+                </h2>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                  Step 2: Preview & Add
+                </span>
+              </div>
+
+              <div className="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center">
+                <div className="w-full flex items-center justify-between mb-3 border-b border-stone-100 pb-2.5">
+                  <div>
+                    <h3 className="font-black text-sm text-stone-800">{selectedProduct.productName}</h3>
+                    <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
+                      {TEMPLATE_NAMES[selectedTemplate]} &middot; {selectedProduct.netWeight} &middot; ₹{selectedProduct.mrp}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => navigate(`/edit-item/${selectedProduct.id}`)}
+                    className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-lg transition"
+                  >
+                    Edit Item
+                  </button>
+                </div>
+
+                <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
+                  <div className="inline-block bg-white shadow-md shrink-0">
+                    {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+                    {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+                    {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+                    {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
+                    {selectedTemplate === 5 && <Template5 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+                  </div>
+                </div>
+
+                <p className="text-xs text-stone-400 font-semibold mt-3 text-center">
+                  Tip: Verify preview above, adjust layout or copies on left, then click <strong className="text-stone-700">"+ ADD TO QUEUE"</strong>.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Batch Previews of Queue Items */}
+          {printQueue.length > 0 && (
+            <div className="w-full flex flex-col items-center">
+              <div className="w-full flex items-center justify-between mb-3 px-1">
                 <h2 className="text-xs sm:text-sm font-black tracking-widest text-stone-400 uppercase">
                   Batch Previews ({printQueue.length} Unique {printQueue.length === 1 ? 'Design' : 'Designs'} &middot; {totalLabelsInQueue} Prints)
                 </h2>
@@ -395,57 +495,19 @@ export default function Home() {
                         {item.template === 2 && <Template2 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                         {item.template === 3 && <Template3 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                         {item.template === 4 && <Template4 product={item.product} />}
+                        {item.template === 5 && <Template5 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          ) : selectedProduct ? (
-            /* Single selected preview when queue is empty */
-            <div className="w-full flex flex-col items-center">
-              <div className="w-full flex items-center justify-between mb-4 px-1">
-                <h2 className="text-xs sm:text-sm font-black tracking-widest text-stone-400 uppercase">
-                  Live Selection Preview
-                </h2>
-                <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                  Not queued yet
-                </span>
-              </div>
+          )}
 
-              <div className="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center">
-                <div className="w-full flex items-center justify-between mb-3 border-b border-stone-100 pb-2.5">
-                  <div>
-                    <h3 className="font-black text-sm text-stone-800">{selectedProduct.productName}</h3>
-                    <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
-                      {TEMPLATE_NAMES[selectedTemplate]} &middot; {selectedProduct.netWeight} &middot; ₹{selectedProduct.mrp}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => navigate(`/edit-item/${selectedProduct.id}`)}
-                    className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-lg transition"
-                  >
-                    Edit Item
-                  </button>
-                </div>
-
-                <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
-                  <div className="inline-block bg-white shadow-md shrink-0">
-                    {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
-                  </div>
-                </div>
-
-                <p className="text-xs text-stone-400 font-semibold mt-3 text-center">
-                  Tip: Click <strong className="text-stone-600">"+ Add to Queue"</strong> to add this design and select other products for a combined print batch.
-                </p>
-              </div>
-            </div>
-          ) : (
+          {/* 3. Empty placeholder when neither a product is selected nor queue has items */}
+          {!selectedProduct && printQueue.length === 0 && (
             <div className="w-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-stone-300 text-stone-400 font-bold text-xs sm:text-sm text-center">
-              Please select a product on the left and add to your queue to preview and bulk print.
+              Please select a product on the left to preview the label design, then add it to your queue to print.
             </div>
           )}
 
@@ -463,6 +525,7 @@ export default function Home() {
                 {item.template === 2 && <Template2 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                 {item.template === 3 && <Template3 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
                 {item.template === 4 && <Template4 product={item.product} />}
+                {item.template === 5 && <Template5 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
               </div>
             ))
           )}
@@ -475,6 +538,7 @@ export default function Home() {
               {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
               {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
               {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
+              {selectedTemplate === 5 && <Template5 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
             </div>
           ))}
         </div>
