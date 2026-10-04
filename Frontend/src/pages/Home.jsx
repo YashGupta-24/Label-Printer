@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
@@ -9,6 +9,7 @@ import Template2 from '../components/Template2';
 import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
 import Template5 from '../components/Template5';
+import { useLabelCounter } from '../context/LabelCounterContext';
 import { Search, Check, Plus, Minus, Trash2, Printer, Layers } from 'lucide-react';
 
 const TEMPLATE_NAMES = {
@@ -21,6 +22,7 @@ const TEMPLATE_NAMES = {
 
 export default function Home() {
   const navigate = useNavigate();
+  const { remainingCount, deductLabels } = useLabelCounter();
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -37,6 +39,23 @@ export default function Home() {
     }
   });
 
+  const pendingPrintCountRef = useRef(0);
+  const printQueueRef = useRef(printQueue);
+  const selectedProductRef = useRef(selectedProduct);
+  const copiesRef = useRef(copies);
+
+  useEffect(() => {
+    printQueueRef.current = printQueue;
+  }, [printQueue]);
+
+  useEffect(() => {
+    selectedProductRef.current = selectedProduct;
+  }, [selectedProduct]);
+
+  useEffect(() => {
+    copiesRef.current = copies;
+  }, [copies]);
+
   useEffect(() => {
     try {
       localStorage.setItem('pos_print_queue', JSON.stringify(printQueue));
@@ -46,7 +65,27 @@ export default function Home() {
   }, [printQueue]);
 
   useEffect(() => {
+    const handleBeforePrint = () => {
+      // Capture count if print was initiated via browser shortcut (e.g. Ctrl+P)
+      if (pendingPrintCountRef.current === 0) {
+        if (printQueueRef.current.length > 0) {
+          pendingPrintCountRef.current = printQueueRef.current.reduce(
+            (sum, item) => sum + (Number(item.copies) || 0),
+            0
+          );
+        } else if (selectedProductRef.current) {
+          pendingPrintCountRef.current = parseInt(copiesRef.current, 10) || 1;
+        }
+      }
+    };
+
     const handleAfterPrint = () => {
+      const printedCount = pendingPrintCountRef.current;
+      if (printedCount > 0) {
+        deductLabels(printedCount);
+        pendingPrintCountRef.current = 0;
+      }
+
       setPrintQueue([]);
       setSelectedProduct(null);
       try {
@@ -56,9 +95,13 @@ export default function Home() {
       }
     };
 
+    window.addEventListener('beforeprint', handleBeforePrint);
     window.addEventListener('afterprint', handleAfterPrint);
-    return () => window.removeEventListener('afterprint', handleAfterPrint);
-  }, []);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, [deductLabels]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -163,10 +206,28 @@ export default function Home() {
   const totalLabelsInQueue = printQueue.reduce((sum, item) => sum + (Number(item.copies) || 0), 0);
 
   const handlePrint = () => {
-    if (printQueue.length === 0 && !selectedProduct) {
+    const countToPrint = printQueue.length > 0
+      ? totalLabelsInQueue
+      : (selectedProduct ? (parseInt(copies, 10) || 1) : 0);
+
+    if (countToPrint === 0) {
       alert("Please add at least one label to the print queue.");
       return;
     }
+
+    if (remainingCount === 0) {
+      const proceed = window.confirm(
+        "Notice: The label stock counter is currently at 0. Do you want to proceed with printing anyway?"
+      );
+      if (!proceed) return;
+    } else if (remainingCount < countToPrint) {
+      const proceed = window.confirm(
+        `Notice: You are printing ${countToPrint} label(s), but only ${remainingCount} are left on the roll counter. Do you want to proceed?`
+      );
+      if (!proceed) return;
+    }
+
+    pendingPrintCountRef.current = countToPrint;
     window.print();
   };
 
