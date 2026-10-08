@@ -1,7 +1,18 @@
 // src/components/AutoFitText.jsx
-import React, { useRef, useLayoutEffect, useState } from 'react';
+import { useRef, useLayoutEffect, useState } from 'react';
 
-export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, allowWrap = false, wrapLineHeight = "1.2", singleLineHeight = "0.9", className = "", preferWrap = false, wordSpacing = "" }) {
+export default function AutoFitText({
+  text,
+  maxFontSize = 42,
+  minFontSize = 16,
+  allowWrap = false,
+  wrapLineHeight = "1.2",
+  singleLineHeight = "0.9",
+  className = "",
+  preferWrap = false,
+  wordSpacing = "",
+  align = "center",
+}) {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const [isWrapping, setIsWrapping] = useState(false);
@@ -80,15 +91,17 @@ export default function AutoFitText({ text, maxFontSize = 42, minFontSize = 16, 
     };
   }, [text, maxFontSize, minFontSize, allowWrap, wrapLineHeight, singleLineHeight, preferWrap, wordSpacing]);
 
+  const justifyClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+
   return (
-    <div ref={containerRef} className={`w-full h-full overflow-hidden flex items-center justify-center ${className}`}>
+    <div ref={containerRef} className={`w-full h-full overflow-hidden flex items-center ${justifyClass} ${className}`}>
       <span 
         ref={textRef} 
         style={{ 
           whiteSpace: isWrapping ? 'normal' : 'nowrap', 
           lineHeight: isWrapping ? wrapLineHeight : singleLineHeight, 
           display: 'inline-block',
-          textAlign: 'center',
+          textAlign: align,
           maxWidth: '100%',
           WebkitTextSizeAdjust: '100%',
           textSizeAdjust: '100%',

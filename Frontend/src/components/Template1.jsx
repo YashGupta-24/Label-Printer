@@ -1,5 +1,4 @@
 // src/components/Template1.jsx
-import React from 'react';
 import AutoFitText from './AutoFitText';
 
 export default function Template1({ product, batchNo, packedOn }) {
@@ -110,27 +109,35 @@ export default function Template1({ product, batchNo, packedOn }) {
 
       </div>
 
-      {/* 3. INGREDIENTS & BEST BEFORE */}
-      <div className="flex-1 w-full flex flex-col justify-center items-center text-center mt-[0.5mm] gap-[0.5mm]">
+      {/* 3. INGREDIENTS & BEST BEFORE - LEFT ALIGNED & CLEAR OF 0.9cm GREEN BLOCK */}
+      <div className="flex-1 w-full max-w-[60mm] flex flex-col justify-center items-start text-left mt-[0.5mm] gap-[0.4mm] pl-[0.5mm]">
         
         {/* Title */}
-        <div className="shrink-0 font-black text-[7px] leading-none tracking-[0.04em] whitespace-nowrap">INGREDIENTS:</div>
+        <div className="shrink-0 font-black text-[7px] leading-none tracking-[0.04em] whitespace-nowrap text-left">INGREDIENTS:</div>
         
         {/* List */}
-        <div className="shrink-0 w-[98%] h-[4.2mm] flex items-center justify-center">
+        <div className="shrink-0 w-full h-[4.2mm] flex items-center justify-start text-left">
           <AutoFitText 
             text={safeProduct.ingredients} 
             maxFontSize={7.5} 
             minFontSize={5.5} 
             allowWrap={true}  
             wrapLineHeight="1.25"
-            className="font-bold uppercase tracking-[0.04em]"
+            align="left"
+            className="font-bold uppercase tracking-[0.04em] text-left"
           />
         </div>
         
         {/* Best Before */}
-        <div className="shrink-0 text-[7px] font-black uppercase leading-none tracking-[0.03em] whitespace-nowrap">
-          BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING.
+        <div className="shrink-0 w-full h-[2.5mm] flex items-center justify-start text-left">
+          <AutoFitText
+            text="BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING."
+            maxFontSize={6.5}
+            minFontSize={5}
+            allowWrap={false}
+            align="left"
+            className="font-black uppercase tracking-[0.02em] text-left"
+          />
         </div>
         
       </div>

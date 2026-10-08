@@ -1,5 +1,4 @@
 // src/components/Template2.jsx
-import React from 'react';
 import AutoFitText from './AutoFitText';
 
 export default function Template2({ product, batchNo, packedOn }) {
@@ -75,27 +74,35 @@ export default function Template2({ product, batchNo, packedOn }) {
 
       </div>
 
-      {/* 3. INGREDIENTS & BEST BEFORE */}
-      <div className="flex-1 w-full flex flex-col justify-center items-center text-center gap-[1mm] mt-[1mm]">
+      {/* 3. INGREDIENTS & BEST BEFORE - LEFT ALIGNED & CLEAR OF 0.9cm GREEN BLOCK */}
+      <div className="flex-1 w-full max-w-[60mm] flex flex-col justify-center items-start text-left gap-[0.8mm] mt-[0.8mm] pl-[0.5mm]">
         
         {/* Title */}
-        <div className="shrink-0 font-black text-[8px] tracking-[0.04em] leading-none whitespace-nowrap">INGREDIENTS:</div>
+        <div className="shrink-0 font-black text-[7.5px] tracking-[0.04em] leading-none whitespace-nowrap text-left">INGREDIENTS:</div>
         
         {/* List */}
-        <div className="shrink-0 w-[96%] min-h-[4mm] max-h-[5.8mm] flex items-center justify-center">
+        <div className="shrink-0 w-full min-h-[4mm] max-h-[5.8mm] flex items-center justify-start text-left">
           <AutoFitText 
             text={safeProduct.ingredients} 
-            maxFontSize={8.5} 
-            minFontSize={6.5} 
+            maxFontSize={8} 
+            minFontSize={6} 
             allowWrap={true}  
             wrapLineHeight="1.25"
-            className="font-bold uppercase tracking-[0.04em]"
+            align="left"
+            className="font-bold uppercase tracking-[0.04em] text-left"
           />
         </div>
         
         {/* Best Before */}
-        <div className="shrink-0 text-[7.5px] font-black uppercase leading-none tracking-[0.03em] whitespace-nowrap">
-          BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING.
+        <div className="shrink-0 w-full h-[2.8mm] flex items-center justify-start text-left">
+          <AutoFitText
+            text="BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING."
+            maxFontSize={7}
+            minFontSize={5.5}
+            allowWrap={false}
+            align="left"
+            className="font-black uppercase tracking-[0.02em] text-left"
+          />
         </div>
         
       </div>

@@ -9,7 +9,9 @@ import Template2 from '../components/Template2';
 import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
 import Template5 from '../components/Template5';
+import RotatedLabelCell from '../components/RotatedLabelCell';
 import { useLabelCounter } from '../context/LabelCounterContext';
+import { usePrintSettings } from '../context/PrintSettingsContext';
 import { Search, Check, Plus, Minus, Trash2, Printer, Layers } from 'lucide-react';
 
 const TEMPLATE_NAMES = {
@@ -20,9 +22,10 @@ const TEMPLATE_NAMES = {
   5: 'Template 5: Brand Name & Details',
 };
 
-export default function Home() {
+export default function Home({ onOpenSettings }) {
   const navigate = useNavigate();
   const { remainingCount, deductLabels } = useLabelCounter();
+  const printSettings = usePrintSettings();
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -204,6 +207,9 @@ export default function Home() {
   };
 
   const totalLabelsInQueue = printQueue.reduce((sum, item) => sum + (Number(item.copies) || 0), 0);
+  const isMultiColumnRoll = (Number(printSettings.columns) || 1) % 2 === 0;
+  const isOddQueue = isMultiColumnRoll && (totalLabelsInQueue % 2 !== 0);
+  const isOddDirect = isMultiColumnRoll && ((parseInt(copies, 10) || 1) % 2 !== 0);
 
   const handlePrint = () => {
     const countToPrint = printQueue.length > 0
@@ -212,6 +218,11 @@ export default function Home() {
 
     if (countToPrint === 0) {
       alert("Please add at least one label to the print queue.");
+      return;
+    }
+
+    if (isMultiColumnRoll && (countToPrint % 2 !== 0)) {
+      alert("ODD COUNT:Add/Delete a label to print");
       return;
     }
 
@@ -231,8 +242,76 @@ export default function Home() {
     window.print();
   };
 
+  const renderTemplateComponent = (templateId, prod) => {
+    if (!prod) return null;
+    switch (templateId) {
+      case 1:
+        return <Template1 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+      case 2:
+        return <Template2 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+      case 3:
+        return <Template3 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+      case 4:
+        return <Template4 product={prod} />;
+      case 5:
+        return <Template5 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+      default:
+        return <Template1 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+    }
+  };
+
+  // Build flattened print slots for spooling
+  const flattenedQueue = [];
+  if (printQueue.length > 0) {
+    printQueue.forEach((item) => {
+      const qty = Number(item.copies) || 1;
+      for (let i = 0; i < qty; i++) {
+        flattenedQueue.push({
+          uniqueKey: `${item.id}-${i}`,
+          product: item.product,
+          template: item.template,
+        });
+      }
+    });
+  } else if (selectedProduct) {
+    const qty = parseInt(copies, 10) || 1;
+    for (let i = 0; i < qty; i++) {
+      flattenedQueue.push({
+        uniqueKey: `single-${i}`,
+        product: selectedProduct,
+        template: selectedTemplate,
+      });
+    }
+  }
+
+  // Group flattened slots into physical rows fed by the thermal printer
+  const printRows = [];
+  const cols = Math.max(1, printSettings.columns || 1);
+  for (let i = 0; i < flattenedQueue.length; i += cols) {
+    const rowSlice = flattenedQueue.slice(i, i + cols);
+    while (rowSlice.length < cols) {
+      rowSlice.push(null);
+    }
+    printRows.push(rowSlice);
+  }
+
   return (
     <div className="min-h-screen bg-transparent p-4 sm:p-6 print:p-0 print:block flex flex-col items-center">
+
+      {/* Dynamic Injected CSS for Thermal Spooler */}
+      <style>{`
+        @media print {
+          @page {
+            size: ${printSettings.pageWidth}mm ${printSettings.pageHeight}mm !important;
+            margin: 0 !important;
+          }
+          .label-page {
+            width: ${printSettings.pageWidth}mm !important;
+            height: ${printSettings.pageHeight}mm !important;
+            gap: ${printSettings.columnGap}mm !important;
+          }
+        }
+      `}</style>
 
       {/* Main Responsive Grid Container */}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-6 items-start justify-center">
@@ -249,64 +328,55 @@ export default function Home() {
               </h2>
             </div>
 
-            {/* Product Search Bar */}
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Search Product</label>
-            <div className="relative mb-4">
-              <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            {/* Search Input */}
+            <div className="relative mb-3">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" size={17} />
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-stone-300 rounded-xl bg-[#fdfcfb] focus:outline-none focus:border-stone-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 placeholder-stone-400 font-bold text-sm focus:outline-none focus:border-stone-500 focus:bg-white transition"
               />
             </div>
 
             {/* Product List */}
-            <div className="max-h-48 overflow-y-auto space-y-2 mb-5 pr-1">
-              {sortedFilteredProducts.length === 0 ? (
-                <div className="text-center py-6 text-stone-400 font-bold text-sm">
-                  {products.length === 0
-                    ? 'Loading products...'
-                    : availableProducts.length === 0
-                    ? 'All products are currently in the queue.'
-                    : 'No matching products.'}
-                </div>
-              ) : (
-                sortedFilteredProducts.map(product => {
+            <div className="border border-stone-200 rounded-xl max-h-52 overflow-y-auto mb-5 divide-y divide-stone-100 bg-white">
+              {sortedFilteredProducts.length > 0 ? (
+                sortedFilteredProducts.map((product) => {
                   const isSelected = selectedProduct?.id === product.id;
                   return (
-                    <div
+                    <button
                       key={product.id}
+                      type="button"
                       onClick={() => handleProductSelect(product)}
-                      className={`cursor-pointer rounded-xl p-3 flex items-center justify-between transition-all border active:scale-[0.99] ${
+                      className={`w-full text-left px-3.5 py-2.5 transition flex items-center justify-between cursor-pointer ${
                         isSelected
-                          ? 'bg-stone-800 text-white border-stone-800 shadow-sm'
-                          : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-200'
+                          ? 'bg-stone-800 text-stone-50 font-black'
+                          : 'hover:bg-stone-50 text-stone-700 font-bold'
                       }`}
                     >
-                      <div>
-                        <h3 className={`font-black text-sm ${isSelected ? 'text-white' : 'text-stone-800'}`}>
-                          {product.productName}
-                        </h3>
-                        <p className={`text-xs mt-0.5 ${isSelected ? 'text-stone-300' : 'text-stone-500'}`}>
+                      <div className="truncate pr-2">
+                        <div className="text-sm truncate">{product.productName}</div>
+                        <div className={`text-[11px] font-semibold ${isSelected ? 'text-stone-300' : 'text-stone-400'}`}>
                           {product.netWeight} &middot; ₹{product.mrp}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                          <Check size={13} className="text-white" />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                      {isSelected && <Check size={16} className="text-stone-50 shrink-0" />}
+                    </button>
                   );
                 })
+              ) : (
+                <div className="p-4 text-center text-xs font-bold text-stone-400">
+                  {searchQuery ? 'No matching products found' : 'All products are currently queued'}
+                </div>
               )}
             </div>
 
+            {/* Selection Options Form */}
             {selectedProduct && (
-              <div className="space-y-4 pt-3 border-t border-stone-200">
-                {/* Template Selector */}
+              <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-3">
+                {/* Select Layout */}
                 <div className="flex flex-col">
                   <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">Select Layout</label>
                   <select
@@ -372,6 +442,18 @@ export default function Home() {
                   Clear Queue
                 </button>
               )}
+            </div>
+
+            {/* Current Roll Setup Info & Change Trigger */}
+            <div className="flex items-center justify-between text-[11px] font-bold text-stone-500 bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-lg mb-3">
+              <span>Roll: <strong className="text-stone-800">{printSettings.columns > 1 ? `${printSettings.columns}-Up` : '1-Up'} ({printSettings.rotation}°)</strong> &middot; {printSettings.pageWidth}×{printSettings.pageHeight}mm</span>
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="text-stone-700 hover:text-stone-900 underline font-black cursor-pointer"
+              >
+                Change
+              </button>
             </div>
 
             {printQueue.length === 0 ? (
@@ -440,19 +522,33 @@ export default function Home() {
               <button
                 type="button"
                 onClick={handlePrint}
-                className="w-full bg-stone-900 hover:bg-stone-800 active:bg-black text-stone-50 font-black tracking-widest uppercase py-4 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
+                disabled={isOddQueue}
+                className={`w-full bg-stone-900 hover:bg-stone-800 active:bg-black text-stone-50 font-black tracking-widest uppercase py-4 rounded-xl transition shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${
+                  isOddQueue ? 'opacity-60 cursor-not-allowed hover:bg-stone-900 active:scale-100' : 'cursor-pointer'
+                }`}
               >
                 <Printer size={18} className="text-amber-400" />
-                <span>PRINT ALL {totalLabelsInQueue} LABEL(S)</span>
+                <span>
+                  {isOddQueue
+                    ? "ODD COUNT:Add/Delete a label to print"
+                    : `PRINT ALL ${totalLabelsInQueue} LABEL(S)`}
+                </span>
               </button>
             ) : selectedProduct ? (
               <button
                 type="button"
                 onClick={handlePrint}
-                className="w-full bg-stone-800 hover:bg-stone-700 active:bg-black text-stone-50 font-black tracking-widest uppercase py-3.5 rounded-xl transition shadow-sm cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
+                disabled={isOddDirect}
+                className={`w-full bg-stone-800 hover:bg-stone-700 active:bg-black text-stone-50 font-black tracking-widest uppercase py-3.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] ${
+                  isOddDirect ? 'opacity-60 cursor-not-allowed hover:bg-stone-800 active:scale-100' : 'cursor-pointer'
+                }`}
               >
                 <Printer size={16} />
-                <span>PRINT SELECTED ({copies || 1} LABEL)</span>
+                <span>
+                  {isOddDirect
+                    ? "ODD COUNT:Add/Delete a label to print"
+                    : `PRINT SELECTED (${copies || 1} LABEL)`}
+                </span>
               </button>
             ) : null}
           </div>
@@ -492,12 +588,45 @@ export default function Home() {
                 </div>
 
                 <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
-                  <div className="inline-block bg-white shadow-md shrink-0">
-                    {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                    {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
-                    {selectedTemplate === 5 && <Template5 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+                  <div
+                    className="inline-flex bg-white shadow-md border border-stone-300 rounded-xs shrink-0 overflow-hidden"
+                    style={{
+                      width: `${printSettings.pageWidth}mm`,
+                      height: `${printSettings.pageHeight}mm`,
+                      gap: `${printSettings.columnGap}mm`,
+                    }}
+                  >
+                    {/* Slot 1: Active Product */}
+                    <RotatedLabelCell>
+                      {renderTemplateComponent(selectedTemplate, selectedProduct)}
+                    </RotatedLabelCell>
+
+                    {/* Additional columns: Filled if copies >= 2, or Blank if copies === 1 */}
+                    {printSettings.columns > 1 &&
+                      Array.from({ length: printSettings.columns - 1 }).map((_, cIdx) => {
+                        const hasSecond = (Number(copies) || 1) > cIdx + 1;
+                        return hasSecond ? (
+                          <RotatedLabelCell key={cIdx}>
+                            {renderTemplateComponent(selectedTemplate, selectedProduct)}
+                          </RotatedLabelCell>
+                        ) : (
+                          <div
+                            key={`blank-direct-${cIdx}`}
+                            className="shrink-0 flex flex-col items-center justify-center bg-stone-50 border-l border-dashed border-stone-300 select-none"
+                            style={{
+                              width: `${printSettings.cellWidth}mm`,
+                              height: `${printSettings.cellHeight}mm`,
+                            }}
+                          >
+                            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                              Blank Label
+                            </span>
+                            <span className="text-[9px] font-semibold text-stone-400 mt-0.5">
+                              (Unprinted Slot)
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
 
@@ -508,59 +637,86 @@ export default function Home() {
             </div>
           )}
 
-          {/* 2. Batch Previews of Queue Items */}
+          {/* 2. Batch Previews of Queue Items as physical paper sheets */}
           {printQueue.length > 0 && (
             <div className="w-full flex flex-col items-center">
               <div className="w-full flex items-center justify-between mb-3 px-1">
                 <h2 className="text-xs sm:text-sm font-black tracking-widest text-stone-400 uppercase">
-                  Batch Previews ({printQueue.length} Unique {printQueue.length === 1 ? 'Design' : 'Designs'} &middot; {totalLabelsInQueue} Prints)
+                  Print Sheets Preview ({printRows.length} {printRows.length === 1 ? 'Sheet' : 'Sheets'} &middot; {totalLabelsInQueue} Prints)
                 </h2>
+                {isOddQueue && (
+                  <span className="text-xs font-black text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                    Odd count ({totalLabelsInQueue})
+                  </span>
+                )}
               </div>
 
-              {/* List of distinct label previews */}
+              {/* List of physical paper sheets matching Chrome's print screen */}
               <div className="w-full space-y-6">
-                {printQueue.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center"
-                  >
-                    {/* Item Header */}
-                    <div className="w-full flex items-center justify-between mb-3 border-b border-stone-100 pb-2.5">
-                      <div>
+                {printRows.map((row, sheetIdx) => {
+                  const hasBlank = row.some((slot) => slot === null);
+                  return (
+                    <div
+                      key={`preview-sheet-${sheetIdx}`}
+                      className="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center"
+                    >
+                      {/* Sheet Header */}
+                      <div className="w-full flex items-center justify-between mb-3 border-b border-stone-100 pb-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-stone-400">#{index + 1}</span>
-                          <h3 className="font-black text-sm text-stone-800">{item.product.productName}</h3>
+                          <span className="text-xs font-black text-stone-400">Sheet #{sheetIdx + 1} of {printRows.length}</span>
+                          <span className="text-xs font-bold text-stone-600">
+                            ({printSettings.pageWidth}×{printSettings.pageHeight}mm)
+                          </span>
                         </div>
-                        <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
-                          {TEMPLATE_NAMES[item.template]} &middot; {item.product.netWeight} &middot; ₹{item.product.mrp}
-                        </p>
+                        {hasBlank ? (
+                          <span className="text-[11px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                            1 Label Blank (Odd Count)
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md">
+                            Full Sheet
+                          </span>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-1 bg-stone-800 text-stone-50 text-xs font-black rounded-lg shadow-xs">
-                          {item.copies} {item.copies === 1 ? 'label' : 'labels'}
-                        </span>
-                        <button
-                          onClick={() => navigate(`/edit-item/${item.product.id}`)}
-                          className="px-2 py-1 text-xs font-bold text-stone-500 hover:text-stone-800 bg-stone-100 rounded-lg hover:bg-stone-200 transition"
+                      {/* Paper Sheet Rendering Box */}
+                      <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
+                        <div
+                          className="inline-flex bg-white shadow-md border border-stone-300 rounded-xs shrink-0 overflow-hidden"
+                          style={{
+                            width: `${printSettings.pageWidth}mm`,
+                            height: `${printSettings.pageHeight}mm`,
+                            gap: `${printSettings.columnGap}mm`,
+                          }}
                         >
-                          Edit
-                        </button>
+                          {row.map((slot, colIdx) =>
+                            slot ? (
+                              <RotatedLabelCell key={slot.uniqueKey || colIdx}>
+                                {renderTemplateComponent(slot.template, slot.product)}
+                              </RotatedLabelCell>
+                            ) : (
+                              <div
+                                key={`blank-${sheetIdx}-${colIdx}`}
+                                className="shrink-0 flex flex-col items-center justify-center bg-stone-50 border-l border-dashed border-stone-300 select-none"
+                                style={{
+                                  width: `${printSettings.cellWidth}mm`,
+                                  height: `${printSettings.cellHeight}mm`,
+                                }}
+                              >
+                                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                                  Blank Label
+                                </span>
+                                <span className="text-[9px] font-semibold text-stone-400 mt-0.5">
+                                  (Unprinted Slot)
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Preview Rendering Box */}
-                    <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
-                      <div className="inline-block bg-white shadow-md shrink-0">
-                        {item.template === 1 && <Template1 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                        {item.template === 2 && <Template2 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                        {item.template === 3 && <Template3 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                        {item.template === 4 && <Template4 product={item.product} />}
-                        {item.template === 5 && <Template5 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -577,33 +733,44 @@ export default function Home() {
       </div>
 
       {/* Hidden Print Container for Browser Print Spooler */}
-      {printQueue.length > 0 ? (
+      {printRows.length > 0 && (
         <div className="print-wrapper">
-          {printQueue.map((item) =>
-            Array.from({ length: item.copies || 1 }).map((_, index) => (
-              <div key={`${item.id}-${index}`} className="label-page">
-                {item.template === 1 && <Template1 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                {item.template === 2 && <Template2 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                {item.template === 3 && <Template3 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-                {item.template === 4 && <Template4 product={item.product} />}
-                {item.template === 5 && <Template5 product={item.product} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-              </div>
-            ))
-          )}
-        </div>
-      ) : selectedProduct ? (
-        <div className="print-wrapper">
-          {Array.from({ length: copies || 1 }).map((_, index) => (
-            <div key={index} className="label-page">
-              {selectedTemplate === 1 && <Template1 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-              {selectedTemplate === 2 && <Template2 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-              {selectedTemplate === 3 && <Template3 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
-              {selectedTemplate === 4 && <Template4 product={selectedProduct} />}
-              {selectedTemplate === 5 && <Template5 product={selectedProduct} batchNo={dates.batchNo} packedOn={dates.packedOn} />}
+          {printRows.map((row, rowIndex) => (
+            <div
+              key={`print-row-${rowIndex}`}
+              className="label-page"
+              style={{
+                width: `${printSettings.pageWidth}mm`,
+                height: `${printSettings.pageHeight}mm`,
+                display: 'flex',
+                flexDirection: 'row',
+                gap: `${printSettings.columnGap}mm`,
+                boxSizing: 'border-box',
+              }}
+            >
+              {row.map((slot, colIndex) =>
+                slot ? (
+                  <RotatedLabelCell key={slot.uniqueKey}>
+                    {renderTemplateComponent(slot.template, slot.product)}
+                  </RotatedLabelCell>
+                ) : (
+                  <div
+                    key={`blank-${rowIndex}-${colIndex}`}
+                    style={{
+                      width: `${printSettings.cellWidth}mm`,
+                      height: `${printSettings.cellHeight}mm`,
+                      minWidth: `${printSettings.cellWidth}mm`,
+                      minHeight: `${printSettings.cellHeight}mm`,
+                      flexShrink: 0,
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                )
+              )}
             </div>
           ))}
         </div>
-      ) : null}
+      )}
 
     </div>
   );

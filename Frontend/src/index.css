@@ -27,7 +27,6 @@
 /* --- THERMAL PRINTER SPECIFIC RULES --- */
 @media print {
   @page {
-    size: 75mm 50mm;
     margin: 0 !important;
   }
   
@@ -54,18 +53,19 @@
   .print-wrapper {
     position: static !important;
     display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .label-page {
-    width: 75mm;
-    height: 50mm;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden;
     page-break-after: always;
     page-break-inside: avoid;
     break-inside: avoid;
-    display: block !important;
+    display: flex !important;
+    flex-direction: row !important;
     box-sizing: border-box;
   }
 

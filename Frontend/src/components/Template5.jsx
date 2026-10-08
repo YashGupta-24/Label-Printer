@@ -127,34 +127,56 @@ export default function Template5({ product, batchNo, packedOn }) {
 
       </div>
 
-      {/* 4. FOOTER DETAILS */}
-      <div className="shrink-0 w-full flex flex-col items-center text-center mt-[0.8mm] gap-[0.35mm]">
+      {/* 4. FOOTER DETAILS - LEFT ALIGNED & CLEAR OF 0.9cm GREEN BLOCK */}
+      <div className="shrink-0 w-full max-w-[60mm] flex flex-col items-start text-left mt-[0.8mm] gap-[0.35mm] pl-[0.5mm]">
         
         {/* Ingredients */}
-        <div className="shrink-0 w-[98%] h-[3.4mm] flex items-center justify-center">
+        <div className="shrink-0 w-full h-[3.4mm] flex items-center justify-start text-left">
           <AutoFitText 
             text={`INGREDIENTS: ${safeProduct.ingredients}`} 
-            maxFontSize={7.2} 
+            maxFontSize={7} 
             minFontSize={5.5} 
             allowWrap={true}  
             wrapLineHeight="1.15"
-            className="font-bold uppercase tracking-[0.03em]"
+            align="left"
+            className="font-bold uppercase tracking-[0.03em] text-left"
           />
         </div>
 
         {/* Best Before */}
-        <div className="shrink-0 text-[6.5px] font-black uppercase leading-tight tracking-[0.03em] whitespace-nowrap">
-          BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING.
+        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+          <AutoFitText
+            text="BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING."
+            maxFontSize={6.2}
+            minFontSize={5}
+            allowWrap={false}
+            align="left"
+            className="font-black uppercase leading-tight tracking-[0.02em] text-left"
+          />
         </div>
 
         {/* Manufactured & Marketed By */}
-        <div className="shrink-0 text-[6.5px] font-black uppercase leading-tight tracking-[0.03em] whitespace-nowrap">
-          MANUFACTURED AND MARKETED BY: SANCHI FOOD PRODUCT
+        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+          <AutoFitText
+            text="MANUFACTURED AND MARKETED BY: SANCHI FOOD PRODUCT"
+            maxFontSize={6.2}
+            minFontSize={5}
+            allowWrap={false}
+            align="left"
+            className="font-black uppercase leading-tight tracking-[0.02em] text-left"
+          />
         </div>
 
         {/* Address & Helpline */}
-        <div className="shrink-0 text-[6.5px] font-black uppercase leading-tight tracking-[0.03em] whitespace-nowrap">
-          S.MANDIR, S.K. ROAD, MEERUT. HELP LINE: 9719027727
+        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+          <AutoFitText
+            text="S.MANDIR, S.K. ROAD, MEERUT. HELP LINE: 9719027727"
+            maxFontSize={6.2}
+            minFontSize={5}
+            allowWrap={false}
+            align="left"
+            className="font-black uppercase leading-tight tracking-[0.02em] text-left"
+          />
         </div>
 
       </div>
