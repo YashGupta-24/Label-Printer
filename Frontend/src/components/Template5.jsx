@@ -16,18 +16,18 @@ export default function Template5({ product, batchNo, packedOn }) {
     : `${safeProduct.netWeight} g`;
 
   return (
-    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col justify-center box-border px-[1.5mm] break-inside-avoid">
+    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col justify-between box-border px-[1.5mm] pt-[1.2mm] pb-[1.2mm] break-inside-avoid">
       
       {/* 1. TOP TAGLINE WITH STARS */}
-      <div className="shrink-0 h-[3.2mm] w-full flex items-center justify-center text-black font-black text-[10px] leading-none tracking-[0.03em] whitespace-nowrap">
+      <div className="shrink-0 h-[3.3mm] w-full flex items-center justify-center text-black font-black text-[10px] leading-none tracking-[0.03em] whitespace-nowrap">
         <span className="text-[10px] mr-1.5">★</span>
         <span className="font-extrabold">सेहत स्वाद साथ-साथ</span>
         <span className="text-[10px] ml-1.5">★</span>
       </div>
 
       {/* 2. BLACK RIBBON BANNER - INDIAN FOOD */}
-      <div className="shrink-0 h-[6.2mm] w-[75mm] -mx-[1.5mm] bg-black text-white flex items-center justify-center mt-[0.5mm] overflow-hidden select-none">
-        <svg viewBox="0 0 750 62" className="w-[75mm] h-[6.2mm]" preserveAspectRatio="none">
+      <div className="shrink-0 h-[6.4mm] w-[75mm] -mx-[1.5mm] bg-black text-white flex items-center justify-center mt-[0.5mm] overflow-hidden select-none">
+        <svg viewBox="0 0 750 64" className="w-[75mm] h-[6.4mm]" preserveAspectRatio="none">
           <text
             x="50%"
             y="54%"
@@ -46,7 +46,7 @@ export default function Template5({ product, batchNo, packedOn }) {
       </div>
 
       {/* 3. MIDDLE SECTION: PRODUCT NAME + DETAILS TABLE */}
-      <div className="shrink-0 flex w-full h-[22.5mm] justify-between items-center mt-[0.8mm]">
+      <div className="shrink-0 flex w-full h-[24.0mm] justify-between items-center mt-[0.7mm]">
         
         {/* --- LEFT SIDE: Product Name & FSSAI --- */}
         <div className="w-[51%] flex flex-col items-center justify-between h-full">
@@ -67,8 +67,8 @@ export default function Template5({ product, batchNo, packedOn }) {
           </div>
 
           {/* FSSAI Logo & License */}
-          <div className="h-[3.2mm] w-full flex items-center justify-center whitespace-nowrap mt-[0.2mm]">
-            <img src={fssaiLogo} alt="fssai" className="h-[2.6mm] w-auto object-contain inline-block mr-1" />
+          <div className="h-[3.4mm] w-full flex items-center justify-center whitespace-nowrap mt-[0.2mm]">
+            <img src={fssaiLogo} alt="fssai" className="h-[2.8mm] w-auto object-contain inline-block mr-1" />
             <span className="font-black text-[8px] tracking-[0.03em] leading-none">: 22724674000012</span>
           </div>
 
@@ -78,7 +78,7 @@ export default function Template5({ product, batchNo, packedOn }) {
         <div className="w-[47%] h-full border-[1.8px] border-black flex flex-col text-[7.5px] leading-tight font-bold tracking-[0.02em]">
           
           {/* Header: PRODUCT DETAILS (Full-width) */}
-          <div className="h-[4.0mm] flex items-center justify-center text-center border-b-[1.2px] border-black whitespace-nowrap tracking-[0.04em] font-black text-[7px] uppercase">
+          <div className="h-[4.4mm] flex items-center justify-center text-center border-b-[1.2px] border-black whitespace-nowrap tracking-[0.04em] font-black text-[7.5px] uppercase">
             PRODUCT DETAILS
           </div>
 
@@ -128,10 +128,10 @@ export default function Template5({ product, batchNo, packedOn }) {
       </div>
 
       {/* 4. FOOTER DETAILS - LEFT ALIGNED & CLEAR OF 0.9cm GREEN BLOCK */}
-      <div className="shrink-0 w-full max-w-[60mm] flex flex-col items-start text-left mt-[0.8mm] gap-[0.35mm] pl-[0.5mm]">
+      <div className="shrink-0 w-full max-w-[60mm] flex flex-col items-start text-left mt-[0.7mm] gap-[0.4mm] pl-[0.5mm]">
         
         {/* Ingredients */}
-        <div className="shrink-0 w-full h-[3.4mm] flex items-center justify-start text-left">
+        <div className="shrink-0 w-full h-[3.6mm] flex items-center justify-start text-left">
           <AutoFitText 
             text={`INGREDIENTS: ${safeProduct.ingredients}`} 
             maxFontSize={7} 
@@ -144,7 +144,7 @@ export default function Template5({ product, batchNo, packedOn }) {
         </div>
 
         {/* Best Before */}
-        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+        <div className="shrink-0 w-full h-[2.4mm] flex items-center justify-start text-left">
           <AutoFitText
             text="BEST BEFORE THREE MONTHS FROM THE MONTH OF PACKAGING."
             maxFontSize={6.2}
@@ -156,7 +156,7 @@ export default function Template5({ product, batchNo, packedOn }) {
         </div>
 
         {/* Manufactured & Marketed By */}
-        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+        <div className="shrink-0 w-full h-[2.4mm] flex items-center justify-start text-left">
           <AutoFitText
             text="MANUFACTURED AND MARKETED BY: SANCHI FOOD PRODUCT"
             maxFontSize={6.2}
@@ -168,7 +168,7 @@ export default function Template5({ product, batchNo, packedOn }) {
         </div>
 
         {/* Address & Helpline */}
-        <div className="shrink-0 w-full h-[2.3mm] flex items-center justify-start text-left">
+        <div className="shrink-0 w-full h-[2.4mm] flex items-center justify-start text-left">
           <AutoFitText
             text="S.MANDIR, S.K. ROAD, MEERUT. HELP LINE: 9719027727"
             maxFontSize={6.2}

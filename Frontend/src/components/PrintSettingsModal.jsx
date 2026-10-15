@@ -1,6 +1,6 @@
 // src/components/PrintSettingsModal.jsx
 import { usePrintSettings } from '../context/PrintSettingsContext';
-import { X, Sliders, RotateCw, Columns, Check, Info, ArrowRight } from 'lucide-react';
+import { X, Sliders, RotateCw, Columns, Check, Info, ArrowRight, ArrowUpDown } from 'lucide-react';
 
 export default function PrintSettingsModal({ isOpen, onClose }) {
   const {
@@ -8,6 +8,7 @@ export default function PrintSettingsModal({ isOpen, onClose }) {
     columns,
     rotation,
     columnGap,
+    verticalOffset,
     pageWidth,
     pageHeight,
     cellWidth,
@@ -266,6 +267,31 @@ export default function PrintSettingsModal({ isOpen, onClose }) {
                   step="0.5"
                   value={columnGap}
                   onChange={(e) => updateSettings({ columnGap: Math.max(0, parseFloat(e.target.value) || 0), preset: 'custom' })}
+                  className="w-20 px-2.5 py-1.5 text-xs font-black border border-stone-300 rounded-lg bg-white text-stone-800 text-center focus:outline-none focus:border-stone-800"
+                />
+                <span className="text-xs font-bold text-stone-500">mm</span>
+              </div>
+            </div>
+
+            {/* Vertical Alignment / Nudge */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-stone-200/60">
+              <div>
+                <label className="text-xs font-black text-stone-800 flex items-center gap-1.5">
+                  <ArrowUpDown size={15} />
+                  <span>Vertical Alignment / Nudge (mm)</span>
+                </label>
+                <p className="text-[11px] text-stone-500">
+                  Shift content down (+) or up (-) to align with printer feed &amp; gaps
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="-10"
+                  max="10"
+                  step="0.5"
+                  value={verticalOffset || 0}
+                  onChange={(e) => updateSettings({ verticalOffset: parseFloat(e.target.value) || 0, preset: 'custom' })}
                   className="w-20 px-2.5 py-1.5 text-xs font-black border border-stone-300 rounded-lg bg-white text-stone-800 text-center focus:outline-none focus:border-stone-800"
                 />
                 <span className="text-xs font-bold text-stone-500">mm</span>

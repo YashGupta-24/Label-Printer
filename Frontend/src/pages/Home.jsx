@@ -10,9 +10,10 @@ import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
 import Template5 from '../components/Template5';
 import RotatedLabelCell from '../components/RotatedLabelCell';
+import QuickEditPrintModal from '../components/QuickEditPrintModal';
 import { useLabelCounter } from '../context/LabelCounterContext';
 import { usePrintSettings } from '../context/PrintSettingsContext';
-import { Search, Check, Plus, Minus, Trash2, Printer, Layers } from 'lucide-react';
+import { Search, Check, Plus, Minus, Trash2, Printer, Layers, Pencil } from 'lucide-react';
 
 const TEMPLATE_NAMES = {
   1: 'Template 1: Nutrition & Details',
@@ -32,6 +33,11 @@ export default function Home({ onOpenSettings }) {
   const [selectedTemplate, setSelectedTemplate] = useState(1);
   const [copies, setCopies] = useState(1);
   const [dates] = useState(() => getLabelDates());
+  const [quickEditState, setQuickEditState] = useState({
+    isOpen: false,
+    product: null,
+    queueItemId: null,
+  });
   const [printQueue, setPrintQueue] = useState(() => {
     try {
       const saved = localStorage.getItem('pos_print_queue');
@@ -205,6 +211,44 @@ export default function Home({ onOpenSettings }) {
   const handleClearQueue = () => {
     setPrintQueue([]);
   };
+
+  const handleOpenQuickEdit = (productToEdit, queueItemId = null) => {
+    if (!productToEdit) return;
+    setQuickEditState({
+      isOpen: true,
+      product: productToEdit,
+      queueItemId,
+    });
+  };
+
+  const handleCloseQuickEdit = () => {
+    setQuickEditState({
+      isOpen: false,
+      product: null,
+      queueItemId: null,
+    });
+  };
+
+  const handleSaveQuickEdit = (updatedProduct) => {
+    if (quickEditState.queueItemId) {
+      setPrintQueue(prev =>
+        prev.map(item =>
+          item.id === quickEditState.queueItemId
+            ? { ...item, product: { ...updatedProduct, isCustomPrint: true } }
+            : item
+        )
+      );
+    } else {
+      setSelectedProduct({ ...updatedProduct, isCustomPrint: true });
+      if (updatedProduct.hasNutrition && selectedTemplate !== 1 && selectedTemplate !== 4) {
+        setSelectedTemplate(1);
+      }
+    }
+  };
+
+  const originalProductForModal = quickEditState.product
+    ? products.find(p => p.id === quickEditState.product.id)
+    : null;
 
   const totalLabelsInQueue = printQueue.reduce((sum, item) => sum + (Number(item.copies) || 0), 0);
   const isMultiColumnRoll = (Number(printSettings.columns) || 1) % 2 === 0;
@@ -409,6 +453,24 @@ export default function Home({ onOpenSettings }) {
                   />
                 </div>
 
+                {/* Quick Print Override Button */}
+                <button
+                  type="button"
+                  onClick={() => handleOpenQuickEdit(selectedProduct, null)}
+                  className={`w-full py-2.5 px-3 rounded-xl border text-xs font-black transition flex items-center justify-center gap-2 cursor-pointer ${
+                    selectedProduct.isCustomPrint
+                      ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300 shadow-xs'
+                      : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-300'
+                  }`}
+                >
+                  <Pencil size={14} className={selectedProduct.isCustomPrint ? 'text-amber-700' : 'text-stone-500'} />
+                  <span>
+                    {selectedProduct.isCustomPrint
+                      ? 'Customized for Print (Edit Again)'
+                      : 'Customize Details for This Print'}
+                  </span>
+                </button>
+
                 {/* Add to Batch Button */}
                 <button
                   type="button"
@@ -471,14 +533,19 @@ export default function Home({ onOpenSettings }) {
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-black text-stone-400">#{idx + 1}</span>
                         <h4 className="font-black text-sm text-stone-800 truncate">{item.product.productName}</h4>
+                        {item.product.isCustomPrint && (
+                          <span className="text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300 shrink-0">
+                            Custom
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] font-semibold text-stone-500 truncate mt-0.5">
-                        {TEMPLATE_NAMES[item.template]} &middot; {item.product.netWeight}
+                        {TEMPLATE_NAMES[item.template]} &middot; {item.product.netWeight} &middot; ₹{item.product.mrp}
                       </p>
                     </div>
 
                     {/* Stepper Controls */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <div className="flex items-center border border-stone-300 rounded-lg bg-white overflow-hidden shadow-xs">
                         <button
                           type="button"
@@ -502,6 +569,19 @@ export default function Home({ onOpenSettings }) {
                           <Plus size={13} />
                         </button>
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenQuickEdit(item.product, item.id)}
+                        className={`p-1.5 rounded-lg transition cursor-pointer ${
+                          item.product.isCustomPrint
+                            ? 'text-amber-700 bg-amber-100 hover:bg-amber-200'
+                            : 'text-stone-400 hover:text-stone-700 hover:bg-stone-200'
+                        }`}
+                        title="Customize details for this print"
+                      >
+                        <Pencil size={15} />
+                      </button>
 
                       <button
                         type="button"
@@ -574,17 +654,36 @@ export default function Home({ onOpenSettings }) {
               <div className="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center">
                 <div className="w-full flex items-center justify-between mb-3 border-b border-stone-100 pb-2.5">
                   <div>
-                    <h3 className="font-black text-sm text-stone-800">{selectedProduct.productName}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-black text-sm text-stone-800">{selectedProduct.productName}</h3>
+                      {selectedProduct.isCustomPrint && (
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-300">
+                          Customized (Print Only)
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
                       {TEMPLATE_NAMES[selectedTemplate]} &middot; {selectedProduct.netWeight} &middot; ₹{selectedProduct.mrp}
                     </p>
                   </div>
-                  <button 
-                    onClick={() => navigate(`/edit-item/${selectedProduct.id}`)}
-                    className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-lg transition"
-                  >
-                    Edit Item
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button 
+                      type="button"
+                      onClick={() => handleOpenQuickEdit(selectedProduct, null)}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-black rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                      title="Customize details for this print only"
+                    >
+                      <Pencil size={13} />
+                      <span>{selectedProduct.isCustomPrint ? 'Edit Custom' : 'Customize for Print'}</span>
+                    </button>
+                    <button 
+                      onClick={() => navigate(`/edit-item/${selectedProduct.id}`)}
+                      className="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-800 text-xs font-bold rounded-lg transition cursor-pointer"
+                      title="Edit product permanently in DB"
+                    >
+                      Edit in DB
+                    </button>
+                  </div>
                 </div>
 
                 <div className="w-full max-w-full overflow-x-auto p-2 sm:p-4 bg-stone-200/50 rounded-xl border border-stone-300 flex justify-center shadow-inner">
@@ -771,6 +870,15 @@ export default function Home({ onOpenSettings }) {
           ))}
         </div>
       )}
+
+      {/* Quick Edit for Print Modal */}
+      <QuickEditPrintModal
+        isOpen={quickEditState.isOpen}
+        onClose={handleCloseQuickEdit}
+        product={quickEditState.product}
+        originalProduct={originalProductForModal}
+        onSave={handleSaveQuickEdit}
+      />
 
     </div>
   );

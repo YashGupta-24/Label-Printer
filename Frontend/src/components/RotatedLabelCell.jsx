@@ -6,12 +6,14 @@ export default function RotatedLabelCell({
   overrideRotation,
   overrideCellWidth,
   overrideCellHeight,
+  overrideVerticalOffset,
   className = '',
   style = {},
 }) {
   const settings = usePrintSettings();
 
   const rotation = overrideRotation !== undefined ? overrideRotation : settings.rotation;
+  const verticalOffset = overrideVerticalOffset !== undefined ? overrideVerticalOffset : (settings.verticalOffset || 0);
   const labelWidth = settings.labelWidth || 75;
   const labelHeight = settings.labelHeight || 50;
 
@@ -43,7 +45,7 @@ export default function RotatedLabelCell({
           minHeight: `${labelHeight}mm`,
           maxWidth: `${labelWidth}mm`,
           maxHeight: `${labelHeight}mm`,
-          transform: `rotate(${rotation}deg)`,
+          transform: `rotate(${rotation}deg) translateY(${verticalOffset}mm)`,
           transformOrigin: 'center center',
           boxSizing: 'border-box',
         }}

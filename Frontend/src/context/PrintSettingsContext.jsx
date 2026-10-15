@@ -15,6 +15,7 @@ export const PRESETS = {
     columnGap: 0,
     labelWidth: 75,
     labelHeight: 50,
+    verticalOffset: 0,
   },
   '2up-270': {
     id: '2up-270',
@@ -24,6 +25,7 @@ export const PRESETS = {
     columnGap: 0,
     labelWidth: 75,
     labelHeight: 50,
+    verticalOffset: 0,
   },
   '1up-default': {
     id: '1up-default',
@@ -33,6 +35,7 @@ export const PRESETS = {
     columnGap: 0,
     labelWidth: 75,
     labelHeight: 50,
+    verticalOffset: 0,
   },
   'custom': {
     id: 'custom',
@@ -50,6 +53,7 @@ export function PrintSettingsProvider({ children }) {
         const parsed = JSON.parse(saved);
         const parsedRot = parsed.rotation !== undefined ? Number(parsed.rotation) : 90;
         const parsedGap = parsed.columnGap !== undefined ? Number(parsed.columnGap) : 0;
+        const parsedOffset = parsed.verticalOffset !== undefined ? Number(parsed.verticalOffset) : 0;
         return {
           preset: parsed.preset || '2up-90',
           columns: Number(parsed.columns) || 2,
@@ -57,6 +61,7 @@ export function PrintSettingsProvider({ children }) {
           columnGap: isNaN(parsedGap) ? 0 : parsedGap,
           labelWidth: Number(parsed.labelWidth) || 75,
           labelHeight: Number(parsed.labelHeight) || 50,
+          verticalOffset: isNaN(parsedOffset) ? 0 : parsedOffset,
         };
       }
     } catch (e) {
@@ -69,6 +74,7 @@ export function PrintSettingsProvider({ children }) {
       columnGap: DEFAULT_SETTINGS.columnGap,
       labelWidth: DEFAULT_SETTINGS.labelWidth,
       labelHeight: DEFAULT_SETTINGS.labelHeight,
+      verticalOffset: DEFAULT_SETTINGS.verticalOffset || 0,
     };
   });
 
@@ -92,7 +98,8 @@ export function PrintSettingsProvider({ children }) {
           preset.rotation === next.rotation &&
           preset.columnGap === next.columnGap &&
           preset.labelWidth === next.labelWidth &&
-          preset.labelHeight === next.labelHeight
+          preset.labelHeight === next.labelHeight &&
+          (preset.verticalOffset || 0) === (next.verticalOffset || 0)
         ) {
           matchedPreset = key;
           break;
@@ -113,6 +120,7 @@ export function PrintSettingsProvider({ children }) {
         columnGap: p.columnGap,
         labelWidth: p.labelWidth,
         labelHeight: p.labelHeight,
+        verticalOffset: p.verticalOffset || 0,
       });
     } else {
       updateSettings({ preset: 'custom' });

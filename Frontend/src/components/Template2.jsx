@@ -15,10 +15,10 @@ export default function Template2({ product, batchNo, packedOn }) {
     : `${safeProduct.netWeight} g`;
 
   return (
-    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[2mm] pt-[1.5mm] pb-[1.5mm] break-inside-avoid">
+    <div className="w-[75mm] h-[50mm] min-w-[75mm] min-h-[50mm] max-w-[75mm] max-h-[50mm] shrink-0 overflow-hidden bg-white text-black flex flex-col box-border px-[2mm] pt-[2.0mm] pb-[2.0mm] break-inside-avoid">
       
       {/* 1. PRODUCT NAME */}
-      <div className="shrink-0 h-[12mm] w-full flex items-center justify-center font-black uppercase tracking-[0.04em] text-center p-0 m-0">
+      <div className="shrink-0 h-[11.5mm] w-full flex items-center justify-center font-black uppercase tracking-[0.04em] text-center p-0 m-0">
         <AutoFitText 
           text={safeProduct.productName} 
           maxFontSize={48} 
@@ -29,13 +29,13 @@ export default function Template2({ product, batchNo, packedOn }) {
       </div>
       
       {/* THICK SEPARATOR LINE */}
-      <div className="shrink-0 w-full border-b-[2px] border-black my-[1mm]"></div>
+      <div className="shrink-0 w-full border-b-[2px] border-black my-[0.7mm]"></div>
       
       {/* 2. PRODUCT DETAILS TABLE */}
-      <div className="shrink-0 flex flex-col w-full h-[19mm] border-[2px] border-black text-[9px] leading-tight font-bold tracking-[0.03em]">
+      <div className="shrink-0 flex flex-col w-full h-[21.5mm] border-[2px] border-black text-[9px] leading-tight font-bold tracking-[0.03em]">
         
         {/* Table Header */}
-        <div className="h-[4.8mm] flex items-center justify-center text-center border-b-[1.5px] border-black uppercase tracking-[0.05em] font-black whitespace-nowrap text-[8.5px]">
+        <div className="h-[5.2mm] flex items-center justify-center text-center border-b-[1.5px] border-black uppercase tracking-[0.05em] font-black whitespace-nowrap text-[9px]">
           PRODUCT DETAILS
         </div>
         
@@ -75,13 +75,13 @@ export default function Template2({ product, batchNo, packedOn }) {
       </div>
 
       {/* 3. INGREDIENTS & BEST BEFORE - LEFT ALIGNED & CLEAR OF 0.9cm GREEN BLOCK */}
-      <div className="flex-1 w-full max-w-[60mm] flex flex-col justify-center items-start text-left gap-[0.8mm] mt-[0.8mm] pl-[0.5mm]">
+      <div className="flex-1 w-full max-w-[60mm] flex flex-col justify-center items-start text-left gap-[0.6mm] mt-[0.7mm] pl-[0.5mm]">
         
         {/* Title */}
         <div className="shrink-0 font-black text-[7.5px] tracking-[0.04em] leading-none whitespace-nowrap text-left">INGREDIENTS:</div>
         
         {/* List */}
-        <div className="shrink-0 w-full min-h-[4mm] max-h-[5.8mm] flex items-center justify-start text-left">
+        <div className="shrink-0 w-full h-[4.5mm] flex items-center justify-start text-left">
           <AutoFitText 
             text={safeProduct.ingredients} 
             maxFontSize={8} 
