@@ -8,7 +8,6 @@ import Template1 from '../components/Template1';
 import Template2 from '../components/Template2';
 import Template3 from '../components/Template3';
 import Template4 from '../components/Template4';
-import Template5 from '../components/Template5';
 import RotatedLabelCell from '../components/RotatedLabelCell';
 import QuickEditPrintModal from '../components/QuickEditPrintModal';
 import { useLabelCounter } from '../context/LabelCounterContext';
@@ -18,9 +17,8 @@ import { Search, Check, Plus, Minus, Trash2, Printer, Layers, Pencil } from 'luc
 const TEMPLATE_NAMES = {
   1: 'Template 1: Nutrition & Details',
   2: 'Template 2: Product Details',
-  3: 'Template 3: Brand & Details',
+  3: 'Template 3: Brand Name & Details',
   4: 'Template 4: 3-in-1 Name Strips',
-  5: 'Template 5: Brand Name & Details',
 };
 
 export default function Home({ onOpenSettings }) {
@@ -297,8 +295,6 @@ export default function Home({ onOpenSettings }) {
         return <Template3 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
       case 4:
         return <Template4 product={prod} />;
-      case 5:
-        return <Template5 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
       default:
         return <Template1 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
     }
@@ -433,8 +429,7 @@ export default function Home({ onOpenSettings }) {
                     ) : (
                       <>
                         <option value={2}>Template 2: Product Details</option>
-                        <option value={3}>Template 3: Brand & Details</option>
-                        <option value={5}>Template 5: Brand Name & Details</option>
+                        <option value={3}>Template 3: Brand Name & Details</option>
                       </>
                     )}
                     <option value={4}>Template 4: 3-in-1 Name Strips</option>
