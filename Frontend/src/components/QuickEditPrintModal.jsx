@@ -1,6 +1,7 @@
 // src/components/QuickEditPrintModal.jsx
 import { useState, useEffect } from 'react';
-import { X, Pencil, RotateCcw, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Pencil, RotateCcw, Zap, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { getLabelDates, formatDateForInput } from '../utils/dateLogic';
 
 export default function QuickEditPrintModal({
   isOpen,
@@ -13,6 +14,7 @@ export default function QuickEditPrintModal({
     productName: '',
     netWeight: '',
     mrp: '',
+    customDate: '',
     ingredients: '',
     hasNutrition: false,
     energy: '',
@@ -30,6 +32,7 @@ export default function QuickEditPrintModal({
         productName: product.productName || '',
         netWeight: product.netWeight || '',
         mrp: product.mrp || '',
+        customDate: product.customDate || formatDateForInput(new Date()),
         ingredients: product.ingredients || '',
         hasNutrition: Boolean(product.hasNutrition),
         energy: product.nutritionalFacts?.energy || '',
@@ -52,12 +55,20 @@ export default function QuickEditPrintModal({
     }));
   };
 
+  const handleSetToday = () => {
+    setFormData((prev) => ({
+      ...prev,
+      customDate: formatDateForInput(new Date()),
+    }));
+  };
+
   const handleResetToOriginal = () => {
     if (!originalProduct) return;
     setFormData({
       productName: originalProduct.productName || '',
       netWeight: originalProduct.netWeight || '',
       mrp: originalProduct.mrp || '',
+      customDate: formatDateForInput(new Date()),
       ingredients: originalProduct.ingredients || '',
       hasNutrition: Boolean(originalProduct.hasNutrition),
       energy: originalProduct.nutritionalFacts?.energy || '',
@@ -69,6 +80,8 @@ export default function QuickEditPrintModal({
     setShowNutrition(Boolean(originalProduct.hasNutrition));
   };
 
+  const previewDates = getLabelDates(formData.customDate || new Date());
+
   const handleApply = (e) => {
     e.preventDefault();
     if (!formData.productName.trim()) {
@@ -76,12 +89,18 @@ export default function QuickEditPrintModal({
       return;
     }
 
+    const dateToUse = formData.customDate || formatDateForInput(new Date());
+    const computedDates = getLabelDates(dateToUse);
+
     const updatedProduct = {
       ...product,
       productName: formData.productName.trim().toUpperCase(),
       netWeight: formData.netWeight.trim(),
       mrp: formData.mrp.trim(),
       ingredients: formData.ingredients.trim(),
+      customDate: dateToUse,
+      batchNo: computedDates.batchNo,
+      packedOn: computedDates.packedOn,
       hasNutrition: formData.hasNutrition,
       nutritionalFacts: formData.hasNutrition
         ? {
@@ -189,6 +208,36 @@ export default function QuickEditPrintModal({
                 className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-bold text-sm text-stone-800 focus:outline-none focus:border-stone-600 focus:bg-white transition"
               />
             </div>
+          </div>
+
+          {/* Date Selector (Packed On / Batch No) */}
+          <div>
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-stone-600">
+                <Calendar size={13} className="text-stone-500" />
+                <span>Date (Packed On / Batch)</span>
+              </label>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+                  Batch: <span className="font-black text-stone-900">{previewDates.batchNo}</span> &middot; Packed: <span className="font-black text-stone-900">{previewDates.packedOn}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSetToday}
+                  className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded border border-amber-300 transition cursor-pointer"
+                  title="Reset to today's date"
+                >
+                  Today
+                </button>
+              </div>
+            </div>
+            <input
+              type="date"
+              name="customDate"
+              value={formData.customDate}
+              onChange={handleChange}
+              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl font-bold text-sm text-stone-800 focus:outline-none focus:border-stone-600 focus:bg-white transition cursor-pointer"
+            />
           </div>
 
           {/* Ingredients */}

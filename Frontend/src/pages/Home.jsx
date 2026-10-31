@@ -286,17 +286,21 @@ export default function Home({ onOpenSettings }) {
 
   const renderTemplateComponent = (templateId, prod) => {
     if (!prod) return null;
+    const prodDates = prod.customDate
+      ? getLabelDates(prod.customDate)
+      : (prod.batchNo && prod.packedOn ? { batchNo: prod.batchNo, packedOn: prod.packedOn } : dates);
+
     switch (templateId) {
       case 1:
-        return <Template1 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+        return <Template1 product={prod} batchNo={prodDates.batchNo} packedOn={prodDates.packedOn} />;
       case 2:
-        return <Template2 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+        return <Template2 product={prod} batchNo={prodDates.batchNo} packedOn={prodDates.packedOn} />;
       case 3:
-        return <Template3 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+        return <Template3 product={prod} batchNo={prodDates.batchNo} packedOn={prodDates.packedOn} />;
       case 4:
         return <Template4 product={prod} />;
       default:
-        return <Template1 product={prod} batchNo={dates.batchNo} packedOn={dates.packedOn} />;
+        return <Template1 product={prod} batchNo={prodDates.batchNo} packedOn={prodDates.packedOn} />;
     }
   };
 
@@ -536,6 +540,9 @@ export default function Home({ onOpenSettings }) {
                       </div>
                       <p className="text-[11px] font-semibold text-stone-500 truncate mt-0.5">
                         {TEMPLATE_NAMES[item.template]} &middot; {item.product.netWeight} &middot; ₹{item.product.mrp}
+                        {item.product.customDate && (
+                          <span className="text-amber-800 font-bold"> &middot; Packed: {item.product.packedOn || getLabelDates(item.product.customDate).packedOn}</span>
+                        )}
                       </p>
                     </div>
 
@@ -659,6 +666,9 @@ export default function Home({ onOpenSettings }) {
                     </div>
                     <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
                       {TEMPLATE_NAMES[selectedTemplate]} &middot; {selectedProduct.netWeight} &middot; ₹{selectedProduct.mrp}
+                      {selectedProduct.customDate && (
+                        <span className="text-amber-800 font-bold"> &middot; Packed: {selectedProduct.packedOn || getLabelDates(selectedProduct.customDate).packedOn}</span>
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
